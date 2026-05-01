@@ -1,0 +1,1032 @@
+{
+  "name": "Phase 1 - Analyse mercator cves v1",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Remplacez:\n-  company par votre societe\n- work_dir par votre arborescence",
+        "height": 352,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        432
+      ],
+      "typeVersion": 1,
+      "id": "95c50c48-714e-4095-9703-18cefde0bb67",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d294d4bd-0e44-4a96-b111-475d12b4acc7",
+              "name": "company",
+              "value": "olivier",
+              "type": "string"
+            },
+            {
+              "id": "81eb4ea4-bd79-407b-91c8-9eb46c1a1f04",
+              "name": "directory",
+              "value": "/home/olivier/Documents/Python/mercator",
+              "type": "string"
+            },
+            {
+              "id": "fcb0c2ee-17f7-4dbb-9b49-af7a61b9d17e",
+              "name": "temp",
+              "value": "temp_uploads",
+              "type": "string"
+            },
+            {
+              "id": "67844263-1645-4a88-af12-1dc03fd19430",
+              "name": "ollamaHost",
+              "value": "localhost",
+              "type": "string"
+            },
+            {
+              "id": "be707c9f-6762-45c0-8730-a3fcc028bd78",
+              "name": "ollamaModel",
+              "value": "qwen3.5:397b-cloud",
+              "type": "string"
+            },
+            {
+              "id": "485a5e5e-a87c-4ecd-80f7-583a5fc03f13",
+              "name": "apiHost",
+              "value": "localhost",
+              "type": "string"
+            },
+            {
+              "id": "b600058c-8cd9-49d5-a6c2-08504b21497e",
+              "name": "apiPort",
+              "value": "8020",
+              "type": "string"
+            },
+            {
+              "id": "ac2b209e-4d60-488e-8ce4-11742245c1c4",
+              "name": "mercatorHost",
+              "value": "localhost",
+              "type": "string"
+            },
+            {
+              "id": "ffa9db3a-a4c0-45fa-af69-1d7574062f5a",
+              "name": "mercatorPort",
+              "value": "8081",
+              "type": "string"
+            },
+            {
+              "id": "c4d81f26-0029-49f2-9959-fd3b777feee9",
+              "name": "demingHost",
+              "value": "localhost",
+              "type": "string"
+            },
+            {
+              "id": "ddce8adb-161a-40c3-82b2-18166e47a637",
+              "name": "demingPort",
+              "value": "8030",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -656,
+        608
+      ],
+      "id": "a59ab72a-689d-456c-9d66-aebdac1594fe",
+      "name": "Definitions initiales"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac6bd696-8500-463b-96e3-9188aad19be1",
+              "name": "prompt",
+              "value": "=# RAG: \n## cves\n{{ JSON.stringify($json.cves, null, 2) }}\n\n## Logiciels\n\n{{ $json.logiciels }}\n\n## ref_json \n\n{{ $json.reference.map(item => JSON.stringify(item, null, 2)).join('\\n\\n') }}\n\nBonjour,\n\n## Ton role est le suivant: analyste en sécurité informatique et gestionnaire de risque\n\n## Contexte: besoin d'intégrer des plans d'actions sutie à la découverte de CPEs dans mes logiciels à partir de la base de cartographie: mercator CMDB\n\n## Objectif final, automatiser avec n8n a création des actions dans deming par extraction automatique de mercator.\n\n## Objectif de ce prompt: peux-tu prendre en compte le fichier joint et me proposer un plan d'action pour corriger les cve trouvées sur\nchaque applications.\n- le fichier cves contient pour chaque application : les cpes, les cves et leur descriptions\n- le fichier logiciels contient les informations comme l'operating systems, la criticité par les axes security_need, le nombre de users impactés, et le rto, et rpo  quand cela existe.\nle fichier ref_json contient les références du json et les id des controls à utiliser\n\nIl me faudrait un plan d'action que je puisse intégrer dans un outil de gestion des risques avec les solutions proposées (logiciel, version, niveau de risque...)\n\n**J'aimerais que le plan d'action soit au format json, en respectant strictement la structure du ficher mis en référence: ref_json et en utilisant les catégories existantes les plus appropriées.**\nTu peux ajouter des domains, des attributes, des measures et des controles si tu ne trouve pas l'adéquation avec les cve.\n\nLes domaines et clauses à utliser sont:\n| framework | Name | clause\n|-----------|------|---------|\n| Vulnerability Management | Mise à jour logiciels | VULN-LOG-01 |\n| Vulnerability Management | Mise à jour Operating Système | VULN-OS-01 |\nen fonction de ce que tu trouveras.\n\n\nChaque entrée de \"measures\" doit avoir un champ:\n\"clause\": \"VULN-LOG-01\" ou \"clause\": \"VULN-OS-01\"\net un champ \"controls\" qui correspond aux id des \"controls\" de \"VULN-LOG-01\" ou  \"VULN-OS-01\" de ref_json\n\"measures\": [\n                control1/control2\n            ]\n\npropose moi les controls manquants pour les domaines àà utiliser\n\n**Il me faut une entrée dans l'outil pour chaque logiciel ou système d'exploitation qui nécessite une action.**\n\nOn ne parle pas de n8n dans ce prompt.\n\nLa réponse doit etre en JSON uniquement\n\n## Complément d'informations\nsite de deming pour bien comprendre les domaines, les listes de controles et les measurements  \nhttps://github.com/dbarzin/deming\n\nExemples de domaines:\n- Mise à jour logiciels\n- Mise à jour Operating Système\n\n## Règles de jointure des données\n- Joindre cves et logiciels sur : cves[Nom] == logiciels[name]\n- Pour chaque logiciel, récupérer : security_need_c, security_need_i, \n  security_need_a, security_need_t, rto, rpo, logicalServers.name, \n  logicalServers.operating_system\n\n## Règle de dispatch des clauses\n- VULN-OS-01 : si logiciels.name == logiciels.logicalServers.operating_system\n               (ex: \"Ubuntu 22.04.3 LTS\", \"Windows Server 2025\")\n- VULN-LOG-01 : tous les autres logiciels applicatifs\n\n## Calcul de priorité (champ \"note\" ou \"observations\" du control)\npriority = combinaison de CVE Score + security_need max :\n  - Critical : CVE Score >= 9.0 OU (security_need >= 3 ET CVE Score >= 7.0)\n  - High     : CVE Score >= 7.0 OU security_need >= 3\n  - Medium   : CVE Score >= 4.0\n  - Low      : CVE Score < 4.0\n\n## Calcul de plan_date (date ISO à partir d'aujourd'hui)\n  - Critical : J+15\n  - High     : J+30\n  - Medium   : J+90\n  - Low      : J+180\n\n## Champ scope (obligatoire dans chaque control)\nFormat : \"<software_name> <version> | <logicalServers.name> | <logicalServers.operating_system>\"\nExemple : \"mariadb 10.11.3 | LOGICAL-SERVER-13 | Ubuntu 22.04.3 LTS\"\n\n## Valeurs par défaut\n- controls.status : 0 (jamais null)\n- controls.score  : null\n- controls.realisation_date : null\n\n### Security_need\nsecurity_need_c\tint\tConfidentiality\nsecurity_need_i\tint\tIntegrity\nsecurity_need_a\tint\tAvailability\nsecurity_need_t\tint\tTraceability\nrto\tint\tRecovery Time Objective\nrpo\tint\tRecovery Point Objective\n\n### Besoins de sécurité\n\nLes besoins de sécurité de l'information sont exprimés en termes de `confidentialité`, `intégrité`, `disponibilité` et `traçabilité` avec l'échelle suivante:\n\n### classification de sécurité (CIDT):  \n\n| Classification  | Type |            Description                  |\n|-----------------|:----:|-----------------------------------------|\n| Confidentialité |  C   | Protège l’information contre tout accès non autorisé.<br>L’objectif est que **seules les personnes autorisées** puissent consulter les données.<br><br>**Exemples:** mots de passe, données personnelles, documents sensibles. |\n| Intégrité       | I    | Garantit que l’information est **exacte, complète et non altérée**.<br>L’objectif est d’empêcher toute **modification non autorisée ou accidentelle** des données.<br><br>**Exemples:** éviter la corruption de données, empêcher des modifications non autorisées. |\n| Disponibilité   | D    | Assure que l’information et les services sont **accessibles quand on en a besoin**.<br>Un système indisponible est un système inutilisable.<br><br>**Exemples:** pannes, attaques DDoS, maintenance non planifiée. |\n| Traçabilité | T | Permet de **savoir qui a fait quoi, quand et comment**.<br>Elle repose sur les journaux, les logs, l’audit et l’identification.<br><br>**Exemples:** logs d’accès, historique des actions, audit de sécurité. |\n\n\n### Niveaux de sécurité\n| Niveau | Description  |                 Couleur                  |\n|:------:|:------------:|:----------------------------------------:|\n|   0    | Insignifiant |                  Blanc                   |\n|   1    |    Faible    |  <span style=\"color:green\">Vert</span>   |\n|   2    |    Moyen     | <span style=\"color:yellow;\">Jaune</span> |\n|   3    |     Fort     | <span style=\"color:orange\">Orange</span> |\n|   4    |  Très fort   |   <span style=\"color:red\">Rouge</span>   |\n\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1088,
+        848
+      ],
+      "id": "89b66107-cf51-47c2-a816-acb94210bec5",
+      "name": "Prompt llm"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        624
+      ],
+      "id": "37277856-0689-429d-b824-92a49171fe47",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        848
+      ],
+      "id": "cfae10f5-7552-4b2e-b3de-46da2a22a31e",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $json.mercatorHost }}:{{ $json.mercatorPort }}/api/login ",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"login\": \"admin@admin.com\",\n  \"password\": \"password\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -432,
+        608
+      ],
+      "id": "015fd986-76eb-4809-b563-34f3967b3a48",
+      "name": "get mercator token"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.mercatorHost }}:{{ $('Definitions initiales').item.json.mercatorPort }}/api/queries/execute/7",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -176,
+        784
+      ],
+      "id": "eb5678b4-c499-4d65-8bee-912e96bdffa7",
+      "name": "get mercator query 7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.content\n\n// Étape 1 : Extraction du bloc JSON et suppression des délimiteurs (inchangé)\nconst match = raw.match(/```json\\s*([\\s\\S]*?)```/);\n\nlet cleaned;\n\nif (match && match[1]) {\n    cleaned = match[1].trim();\n} else {\n    cleaned = raw.replace(/^```json/, '').replace(/```$/, '').trim();\n}\n\n// -------------------------------------------------------------------\n// Étape 2 : NETTOYAGE EXTRÊME ET CIBLÉ (V5.0)\n// -------------------------------------------------------------------\n\n// 2a. Suppression des caractères de contrôle invisibles et des séparateurs.\n// (Gère \\u200b, \\uFEFF et autres plages de contrôle)\ncleaned = cleaned.replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u2000-\\u200F\\u2028-\\u202F\\u200b\\uFEFF]/g, '');\n\n// 2b. CIBLAGE ET SUPPRESSION SPÉCIFIQUE DU CARACTÈRE '<ctrl46>' (\\u5E7B)\n// Nous utilisons le code Unicode pour forcer la suppression même si la regex précédente échoue.\n// Cette ligne devrait éliminer tous les '<ctrl46>' restants.\ncleaned = cleaned.replace(/\\u5E7B/g, ''); \n\n// 2c. FILTRE ADDITIONNEL : Supprimer TOUS les caractères non-ASCII qui ne sont pas des lettres françaises\n// Caractères > U+00FF non répertoriés sont supprimés. Ce filtre devrait attraper d'autres caractères exotiques.\n//cleaned = cleaned.replace(/[^\\u0000-\\u007F\\u00C0-\\u00FF]/g, ''); \n\n// 2d. Correction des sauts de ligne/retours chariot NON ÉCHAPPÉS.\n// Remplacement par \\n échappé pour rendre le JSON valide.\ncleaned = cleaned.replace(/\\r?\\n|\\r/g, '\\\\n'); \n\n// -------------------------------------------------------------------\n// Étape 3 : PARSING SÉCURISÉ\n// -------------------------------------------------------------------\n\nlet corrected = cleaned; // Déclaré pour la portée du catch\n\ntry {\n    // 3a. Correction des virgules orphelines (ex: {\"a\": 1,})\n    corrected = cleaned.replace(/,\\s*([}\\]])/g, '$1');\n    \n    const parsed = JSON.parse(corrected);\n    return [{ json: parsed }];\n} catch (e) {\n    // Renvoyer l'erreur avec le contenu nettoyé qui a échoué\n    return [{ json: { error: \"JSON parsing failed\", details: e.message, contentAttempt: corrected } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        832
+      ],
+      "id": "9e051ecd-4899-46eb-9252-d2116371e79e",
+      "name": "nettoie json1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $('Definitions initiales').item.json.ollamaHost }}:11434/api/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "={{ $('Definitions initiales').item.json.ollamaModel }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{ \"role\": \"user\", \"content\": $json.prompt }] }}"
+            },
+            {
+              "name": "stream",
+              "value": false
+            },
+            {
+              "name": "options",
+              "value": "={{ { \"temperature\": 0.1, \"top_p\": 0.9, \"num_predict\": 16384 } }}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "keep_alive",
+              "value": "30m"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 1800000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1328,
+        848
+      ],
+      "id": "bce96db2-1b98-4c3a-836a-af3b08b60ae8",
+      "name": "HTTP Request Ollama",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49d1cd6c-490d-425b-be59-65e494c2f3e3",
+              "name": "content",
+              "value": "={{ $json.message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "70bfebd8-60b8-4c37-9602-9d7a2e260f57",
+              "name": "tokensPrompt3",
+              "value": "={{ $json.prompt_eval_count }}",
+              "type": "string"
+            },
+            {
+              "id": "bf21545c-3a73-4575-9bc4-e2aaff2d7fce",
+              "name": "tokensReponse3",
+              "value": "={{ $json.eval_count }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1616,
+        832
+      ],
+      "id": "177be22a-31c4-4916-b8fd-cbac080bef29",
+      "name": "count tokens"
+    },
+    {
+      "parameters": {
+        "content": "# Pensez à démarrer l'API !!",
+        "height": 320,
+        "width": 304,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1168,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "04df50e9-74af-47b6-b0e1-bbd60d827c08",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        608
+      ],
+      "id": "f04dbe92-daef-4bb1-aa8c-df8a8482b10a",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.mercatorHost }}:{{ $('Definitions initiales').item.json.mercatorPort }}/api/report/cve",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.access_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/octet-stream"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -176,
+        512
+      ],
+      "id": "0d1a3adf-3fe0-4fc5-b4dc-55137d113486",
+      "name": "get mercator report cve "
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        512
+      ],
+      "id": "603c8d34-4495-489c-ba10-c6d120daa01d",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "keys": {
+          "key": [
+            {
+              "currentKey": "data",
+              "newKey": "logiciels"
+            }
+          ]
+        },
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-base.renameKeys",
+      "typeVersion": 1,
+      "position": [
+        32,
+        784
+      ],
+      "id": "fb45d419-9120-4334-a39a-9ace448193d0",
+      "name": "Rename Keys"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "cves",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        240,
+        512
+      ],
+      "id": "458bd3f3-8dde-4b52-a187-5f038748a9a0",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $json.demingHost }}:{{ $json.demingPort }}/api/login ",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "api@admin.localhost"
+            },
+            {
+              "name": "password",
+              "value": "12345678"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -416,
+        1312
+      ],
+      "id": "9155d441-d85b-480d-ab09-3777413fad5a",
+      "name": "get deming token"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.demingHost }}:{{ $('Definitions initiales').item.json.demingPort }}/api/attributes",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.token }}"
+            },
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -160,
+        1088
+      ],
+      "id": "bcfd2d8a-cf2d-4137-8e8e-7c5354182ab1",
+      "name": "get deming attributes"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.demingHost }}:{{ $('Definitions initiales').item.json.demingPort }}/api/domains",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -160,
+        1248
+      ],
+      "id": "f9789bbd-4661-4d6f-b448-83f37a7a9812",
+      "name": "get deming domains"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.demingHost }}:{{ $('Definitions initiales').item.json.demingPort }}/api/controls",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -160,
+        1664
+      ],
+      "id": "fce7bf7c-ac0c-412f-a54c-34f92e3f8fa0",
+      "name": "get deming controls"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.demingHost }}:{{ $('Definitions initiales').item.json.demingPort }}/api/measures",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -160,
+        1456
+      ],
+      "id": "e5d77fac-0b36-4fe2-8262-f4b03930781a",
+      "name": "get deming measures"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Récupérer tous les items qui arrivent dans le nœud\nconst items = $input.all();\n\n// 2. Extraire uniquement la partie 'json' (tes données) pour faire un beau tableau\nconst data_brute = items.map(item => item.json);\n\n// 3. Retourner l'objet encapsulé avec le nom de ton choix\nreturn {\n  attributes: data_brute\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        1088
+      ],
+      "id": "96f6a6d3-6018-4675-bc28-ff0413def894",
+      "name": "add json header for attributes"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Récupérer tous les items qui arrivent dans le nœud\nconst items = $input.all();\n\n// 2. Extraire uniquement la partie 'json' (tes données) pour faire un beau tableau\nconst data_brute = items.map(item => item.json);\n\n// 3. Retourner l'objet encapsulé avec le nom de ton choix\nreturn {\n  domains: data_brute\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        1248
+      ],
+      "id": "480fc5be-b128-4059-beaf-c0c739b3cefc",
+      "name": "add json header for domains"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Récupérer tous les items qui arrivent dans le nœud\nconst items = $input.all();\n\n// 2. Extraire uniquement la partie 'json' (tes données) pour faire un beau tableau\nconst data_brute = items.map(item => item.json);\n\n// 3. Retourner l'objet encapsulé avec le nom de ton choix\nreturn {\n  measures: data_brute\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        1456
+      ],
+      "id": "b7d2b293-dedb-4bbe-ad7b-f281d8369813",
+      "name": "add json header for measures"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Récupérer tous les items qui arrivent dans le nœud\nconst items = $input.all();\n\n// 2. Extraire uniquement la partie 'json' (tes données) pour faire un beau tableau\nconst data_brute = items.map(item => item.json);\n\n// 3. Retourner l'objet encapsulé avec le nom de ton choix\nreturn {\n  controls: data_brute\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        1664
+      ],
+      "id": "36f4371d-fead-4156-97b5-ba922a7ee232",
+      "name": "add json header for controls"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        1280
+      ],
+      "id": "fa57dc61-74a5-488e-90dd-06bb89f04d46",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Récupérer tous les items qui arrivent dans le nœud\nconst items = $input.all();\n\n// 2. Extraire uniquement la partie 'json' (tes données) pour faire un beau tableau\nconst data_brute = items.map(item => item.json);\n\n// 3. Retourner l'objet encapsulé avec le nom de ton choix\nreturn {\n  reference: data_brute\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        1312
+      ],
+      "id": "d9024265-4c7f-4124-9557-14f9389afce8",
+      "name": "add json header for reference"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Récupération du premier item\nconst item = items[0].json;\n\n// Extraction et nettoyage (trim) du modèle pour enlever l'espace\nlet nom = \"cve_actions\";\nlet rawModel = $('Definitions initiales').first().json.ollamaModel || \"\";\nlet model = rawModel.trim().replace(/\\s+/g, '_'); // On enlève les espaces et on remplace ceux du milieu par des _\n\n// --- Génération du timestamp à l'heure de Paris (Europe/Paris) ---\nconst now = new Date();\nconst options = { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };\nconst formatter = new Intl.DateTimeFormat('fr-FR', options);\nconst partsTime = formatter.formatToParts(now);\n\n// Extraction des composants pour construire YYYYMMDD-HHMMSS\nconst t = {};\npartsTime.forEach(({type, value}) => t[type] = value);\nconst date_heure_str = `${t.year}${t.month}${t.day}-${t.hour}${t.minute}${t.second}`;\n\n// Création du nom de fichier\nconst parts = [nom, model, date_heure_str].filter(p => p !== \"\");\nconst filename = parts.join(\"_\");\n\nreturn [{\n    json: {\n        filename: filename + \".json\"\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        960
+      ],
+      "id": "73b42345-7239-4748-bc78-2293156df451",
+      "name": "define nom de fichier"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2272,
+        848
+      ],
+      "id": "a2be9cfa-3035-4468-909f-00b7c0c21ab7",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $('Definitions initiales').item.json.apiHost }}:{{ $('Definitions initiales').item.json.apiPort }}/v3/sauve-json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "=directory",
+              "value": "={{ $('Definitions initiales').item.json.directory }}/{{ $('Definitions initiales').item.json.temp }}"
+            },
+            {
+              "name": "filename",
+              "value": "={{ $json.filename }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attributes",
+              "value": "={{ $json.attributes }}"
+            },
+            {
+              "name": "domains",
+              "value": "={{ $json.domains }}"
+            },
+            {
+              "name": "measures",
+              "value": "={{ $json.measures }}"
+            },
+            {
+              "name": "controls",
+              "value": "={{ $json.controls }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2448,
+        848
+      ],
+      "id": "9205c612-a4f1-4761-ba94-c032ce1ef606",
+      "name": "sauve json par API"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Definitions initiales": {
+      "main": [
+        [
+          {
+            "node": "get mercator token",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get deming token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt llm": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Ollama",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Prompt llm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator token": {
+      "main": [
+        [
+          {
+            "node": "get mercator query 7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get mercator report cve ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator query 7": {
+      "main": [
+        [
+          {
+            "node": "Rename Keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Ollama": {
+      "main": [
+        [
+          {
+            "node": "count tokens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "count tokens": {
+      "main": [
+        [
+          {
+            "node": "nettoie json1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Definitions initiales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator report cve ": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename Keys": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming token": {
+      "main": [
+        [
+          {
+            "node": "get deming attributes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get deming controls",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get deming domains",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get deming measures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming attributes": {
+      "main": [
+        [
+          {
+            "node": "add json header for attributes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming domains": {
+      "main": [
+        [
+          {
+            "node": "add json header for domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming controls": {
+      "main": [
+        [
+          {
+            "node": "add json header for controls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming measures": {
+      "main": [
+        [
+          {
+            "node": "add json header for measures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add json header for attributes": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add json header for domains": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "add json header for measures": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "add json header for controls": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "add json header for reference",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add json header for reference": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "nettoie json1": {
+      "main": [
+        [
+          {
+            "node": "define nom de fichier",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "define nom de fichier": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "sauve json par API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Paris",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "versionId": "6bfe7f26-f10b-4046-878b-e844406eb676",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22f6c1676f95514e19ae9841dd694aac3c283c61598a8e9393d4d9cacbf212da"
+  },
+  "id": "9lpY2A0GHB3iXwtq",
+  "tags": []
+}

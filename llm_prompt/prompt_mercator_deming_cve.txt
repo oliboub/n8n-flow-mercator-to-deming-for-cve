@@ -1,0 +1,126 @@
+# RAG: 
+## cves
+{{ JSON.stringify($json.cves, null, 2) }}
+
+## Logiciels
+
+{{ $json.logiciels }}
+
+## ref_json 
+
+{{ $json.reference.map(item => JSON.stringify(item, null, 2)).join('\n\n') }}
+
+Bonjour,
+
+## Ton role est le suivant: analyste en sécurité informatique et gestionnaire de risque
+
+## Contexte: besoin d'intégrer des plans d'actions sutie à la découverte de CPEs dans mes logiciels à partir de la base de cartographie: mercator CMDB
+
+## Objectif final, automatiser avec n8n a création des actions dans deming par extraction automatique de mercator.
+
+## Objectif de ce prompt: peux-tu prendre en compte le fichier joint et me proposer un plan d'action pour corriger les cve trouvées sur
+chaque applications.
+- le fichier cves contient pour chaque application : les cpes, les cves et leur descriptions
+- le fichier logiciels contient les informations comme l'operating systems, la criticité par les axes security_need, le nombre de users impactés, et le rto, et rpo  quand cela existe.
+le fichier ref_json contient les références du json et les id des controls à utiliser
+
+Il me faudrait un plan d'action que je puisse intégrer dans un outil de gestion des risques avec les solutions proposées (logiciel, version, niveau de risque...)
+
+**J'aimerais que le plan d'action soit au format json, en respectant strictement la structure du ficher mis en référence: ref_json et en utilisant les catégories existantes les plus appropriées.**
+Tu peux ajouter des domains, des attributes, des measures et des controles si tu ne trouve pas l'adéquation avec les cve.
+
+Les domaines et clauses à utliser sont:
+| framework | Name | clause
+|-----------|------|---------|
+| Vulnerability Management | Mise à jour logiciels | VULN-LOG-01 |
+| Vulnerability Management | Mise à jour Operating Système | VULN-OS-01 |
+en fonction de ce que tu trouveras.
+
+
+Chaque entrée de "measures" doit avoir un champ:
+"clause": "VULN-LOG-01" ou "clause": "VULN-OS-01"
+et un champ "controls" qui correspond aux id des "controls" de "VULN-LOG-01" ou  "VULN-OS-01" de ref_json
+"measures": [
+                control1/control2
+            ]
+
+propose moi les controls manquants pour les domaines àà utiliser
+
+**Il me faut une entrée dans l'outil pour chaque logiciel ou système d'exploitation qui nécessite une action.**
+
+On ne parle pas de n8n dans ce prompt.
+
+La réponse doit etre en JSON uniquement
+
+## Complément d'informations
+site de deming pour bien comprendre les domaines, les listes de controles et les measurements  
+https://github.com/dbarzin/deming
+
+Exemples de domaines:
+- Mise à jour logiciels
+- Mise à jour Operating Système
+
+## Règles de jointure des données
+- Joindre cves et logiciels sur : cves[Nom] == logiciels[name]
+- Pour chaque logiciel, récupérer : security_need_c, security_need_i, 
+  security_need_a, security_need_t, rto, rpo, logicalServers.name, 
+  logicalServers.operating_system
+
+## Règle de dispatch des clauses
+- VULN-OS-01 : si logiciels.name == logiciels.logicalServers.operating_system
+               (ex: "Ubuntu 22.04.3 LTS", "Windows Server 2025")
+- VULN-LOG-01 : tous les autres logiciels applicatifs
+
+## Calcul de priorité (champ "note" ou "observations" du control)
+priority = combinaison de CVE Score + security_need max :
+  - Critical : CVE Score >= 9.0 OU (security_need >= 3 ET CVE Score >= 7.0)
+  - High     : CVE Score >= 7.0 OU security_need >= 3
+  - Medium   : CVE Score >= 4.0
+  - Low      : CVE Score < 4.0
+
+## Calcul de plan_date (date ISO à partir d'aujourd'hui)
+  - Critical : J+15
+  - High     : J+30
+  - Medium   : J+90
+  - Low      : J+180
+
+## Champ scope (obligatoire dans chaque control)
+Format : "<software_name> <version> | <logicalServers.name> | <logicalServers.operating_system>"
+Exemple : "mariadb 10.11.3 | LOGICAL-SERVER-13 | Ubuntu 22.04.3 LTS"
+
+## Valeurs par défaut
+- controls.status : 0 (jamais null)
+- controls.score  : null
+- controls.realisation_date : null
+
+### Security_need
+security_need_c	int	Confidentiality
+security_need_i	int	Integrity
+security_need_a	int	Availability
+security_need_t	int	Traceability
+rto	int	Recovery Time Objective
+rpo	int	Recovery Point Objective
+
+### Besoins de sécurité
+
+Les besoins de sécurité de l'information sont exprimés en termes de `confidentialité`, `intégrité`, `disponibilité` et `traçabilité` avec l'échelle suivante:
+
+### classification de sécurité (CIDT):  
+
+| Classification  | Type |            Description                  |
+|-----------------|:----:|-----------------------------------------|
+| Confidentialité |  C   | Protège l’information contre tout accès non autorisé.<br>L’objectif est que **seules les personnes autorisées** puissent consulter les données.<br><br>**Exemples:** mots de passe, données personnelles, documents sensibles. |
+| Intégrité       | I    | Garantit que l’information est **exacte, complète et non altérée**.<br>L’objectif est d’empêcher toute **modification non autorisée ou accidentelle** des données.<br><br>**Exemples:** éviter la corruption de données, empêcher des modifications non autorisées. |
+| Disponibilité   | D    | Assure que l’information et les services sont **accessibles quand on en a besoin**.<br>Un système indisponible est un système inutilisable.<br><br>**Exemples:** pannes, attaques DDoS, maintenance non planifiée. |
+| Traçabilité | T | Permet de **savoir qui a fait quoi, quand et comment**.<br>Elle repose sur les journaux, les logs, l’audit et l’identification.<br><br>**Exemples:** logs d’accès, historique des actions, audit de sécurité. |
+
+
+### Niveaux de sécurité
+| Niveau | Description  |                 Couleur                  |
+|:------:|:------------:|:----------------------------------------:|
+|   0    | Insignifiant |                  Blanc                   |
+|   1    |    Faible    |  <span style="color:green">Vert</span>   |
+|   2    |    Moyen     | <span style="color:yellow;">Jaune</span> |
+|   3    |     Fort     | <span style="color:orange">Orange</span> |
+|   4    |  Très fort   |   <span style="color:red">Rouge</span>   |
+
