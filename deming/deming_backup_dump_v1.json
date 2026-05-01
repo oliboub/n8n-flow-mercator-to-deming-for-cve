@@ -1,0 +1,607 @@
+{
+    "attributes": [
+        {
+            "id": 1,
+            "name": "Security measures",
+            "values": "#Preventive #Detective #Corrective",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 2,
+            "name": "Cybersecurity Concepts",
+            "values": "#Identify #Protect #Detect #Respond #Recover #Govern",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 3,
+            "name": "Security domains",
+            "values": "#Governance_and_Ecosystem #Protection #Defense #Resilience",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 4,
+            "name": "Information Security",
+            "values": "#Confidentiality #Integrity #Availability",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 5,
+            "name": "Operational Capabilities",
+            "values": "#Governance #Asset_Management #Information_Protection #Human_Resource_Security #Physical_Security #System_and_Network_Security #Application_Security #Secure_Configuration #Identity_and_Access_Management #Threat_and_Vulnerability_Management #Continuity #Assurance_information_security",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 6,
+            "name": "Software_Version",
+            "values": "#Current #Target #Latest",
+            "created_at": "2026-04-30T08:40:24.000000Z",
+            "updated_at": "2026-04-30T08:40:24.000000Z"
+        },
+        {
+            "id": 7,
+            "name": "Vulnerability_Status",
+            "values": "#Unknown #Pending_Patch #Patched #CVE_Lookup_Error",
+            "created_at": "2026-04-30T08:40:24.000000Z",
+            "updated_at": "2026-04-30T08:40:24.000000Z"
+        },
+        {
+            "id": 8,
+            "name": "Risk_Level",
+            "values": "#Low #Medium #High #Critical",
+            "created_at": "2026-04-30T08:40:25.000000Z",
+            "updated_at": "2026-04-30T08:40:25.000000Z"
+        },
+        {
+            "id": 9,
+            "name": "Vulnerability_Source",
+            "values": "#CPE_Lookup #CVE_Database #Vendor_Advisory",
+            "created_at": "2026-04-30T09:09:46.000000Z",
+            "updated_at": "2026-04-30T09:09:46.000000Z"
+        }
+    ],
+    "domains": [
+        {
+            "id": 1,
+            "framework": "NIS2",
+            "title": "Pilotage et Gouvernance NIS2",
+            "description": "Pilotage stratégique et opérationnel selon Art. 21.1 et 21.2.a",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 2,
+            "framework": "NIS2",
+            "title": "Résilience et Sauvegardes NIS2",
+            "description": "Continuité d'activité selon Art. 21.2.c",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 3,
+            "framework": "NIS2",
+            "title": "Réponse aux Incidents NIS2",
+            "description": "Gestion et notification des incidents selon Art. 23",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 4,
+            "framework": "NIS2",
+            "title": "Sécurité de la Supply Chain NIS2",
+            "description": "Sécurité des fournisseurs selon Art. 21.2.e",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 5,
+            "framework": "NIS2",
+            "title": "Formation et Sensibilisation NIS2",
+            "description": "Formation et sensibilisation selon Art. 20.1",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 6,
+            "framework": "NIS2",
+            "title": "Gestion sécurisée des accès",
+            "description": "Gestion des accès selon Art. 21.2.b",
+            "created_at": "2026-04-30T06:25:41.000000Z",
+            "updated_at": "2026-04-30T06:25:41.000000Z"
+        },
+        {
+            "id": 7,
+            "framework": "Vulnerability Management",
+            "title": "Mise à jour Operating Système",
+            "description": "Gestion des correctifs de sécurité pour les systèmes d'exploitation (OS Patch Management)",
+            "created_at": "2026-04-30T09:09:46.000000Z",
+            "updated_at": "2026-04-30T09:09:46.000000Z"
+        },
+        {
+            "id": 8,
+            "framework": "Vulnerability Management",
+            "title": "Mise à jour logiciels",
+            "description": "Gestion des correctifs de sécurité pour les applications et middleware (Application Patch Management)",
+            "created_at": "2026-04-30T09:09:46.000000Z",
+            "updated_at": "2026-04-30T09:09:46.000000Z"
+        }
+    ],
+    "controls": [
+        {
+            "id": 1,
+            "name": "Revue et signature formelle de l'analyse de risques",
+            "objective": "Validation par la direction de la stratégie de traitement des risques",
+            "input": null,
+            "model": "Présentation Codir + signature formelle",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 12,
+            "plan_date": "2026-07-31",
+            "realisation_date": "2025-03-25",
+            "observations": null,
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                1
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Audit annuel de maturité et conformité NIS2",
+            "objective": "Vérification périodique de l'état de l'organisation par audit interne ou externe",
+            "input": null,
+            "model": "Audit NIS2 + ISO 27001",
+            "indicator": null,
+            "action_plan": "- Mettre en place EBIOS RM (Q1 2026)\r\n  - Définir et suivre 8 KPIs NIS2\r\n  - Former la direction aux obligations Art. 20\r\n  - Réviser tous les contrats tiers critiques\r\n\r\n\r\n    \r\n  Plan d'action: À valider en Codir (2025-11-15)",
+            "periodicity": 3,
+            "plan_date": "2026-10-31",
+            "realisation_date": "2025-10-25",
+            "observations": "Score global: 45/100 ⛔\r\n  \r\n  Résultats par domaine:\r\n  - Gouvernance: 60/100 (moyen)\r\n  - Gestion des risques: 40/100 (faible) ⚠️\r\n  - Sécurité des SI: 50/100 (moyen)\r\n  - Continuité: 70/100 (correct) ✅\r\n  - Supply chain: 30/100 (critique) ⛔\r\n  \r\n  Principales lacunes:\r\n  1. Analyse de risques incomplète (pas de méthodologie formelle)\r\n  2. Aucun KPI défini\r\n  3. Documentation insuffisante\r\n  4. Pas de tests de restauration documentés\r\n  5. Contrats fournisseurs non conformes",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                2
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Test annuel de restauration et d'intégrité NIS2",
+            "objective": "Preuve technique de capacité de reprise d'activité après incident majeur",
+            "input": null,
+            "model": "Test restauration complète + vérification intégrité",
+            "indicator": null,
+            "action_plan": "RAS",
+            "periodicity": 12,
+            "plan_date": "2026-10-30",
+            "realisation_date": "2025-11-04",
+            "observations": "Tests de restaurations réalisé avec succès\r\n\r\nRésultats:\r\n- Restauration complète 2h30\r\n- Intégrité certifiée sur 100% des fichiers\r\n- Documentation à jour\r\n\r\nPoints Positifs:\r\n- procédure bien documente\r\n- Equipe IT Réactive\r\n- Infrastructure performante",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                3
+            ]
+        },
+        {
+            "id": 4,
+            "name": "Test de la procédure de notification ANSSI",
+            "objective": "Vérification de la procédure et des contacts",
+            "input": null,
+            "model": "Exercice crise simulée + notification test",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 12,
+            "plan_date": "2026-09-30",
+            "realisation_date": "2025-09-20",
+            "observations": "Tests réalisés avec succès",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                4
+            ]
+        },
+        {
+            "id": 5,
+            "name": "Revue des clauses cyber NIS2 dans les contrats tiers",
+            "objective": "Vérification des obligations de sécurité dans les contrats d'achat critiques",
+            "input": null,
+            "model": "Revue juridique + Achats",
+            "indicator": null,
+            "action_plan": "- Renégociation contrats non conformes (Q1 2026)\r\n- Template contractuel NIS2 en cours de création",
+            "periodicity": 3,
+            "plan_date": "2026-06-30",
+            "realisation_date": "2025-12-20",
+            "observations": "Revue des contrats tiers réalisés sur 15 fournisseurs critiques.\r\n\r\nRésultats:\r\n  - 10/15 contrats conformes (67%) ⚠️\r\n  - 5 contrats nécessitent mise à jour\r\n  \r\n  Non-conformités identifiées:\r\n  1. Fournisseur A : Clause notification incident absente\r\n  2. Fournisseur B : Pas de clause audit\r\n  3. Fournisseur C, D, E : Clauses trop génériques",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                5
+            ]
+        },
+        {
+            "id": 6,
+            "name": "Contrôle et audit des accès de maintenance externe",
+            "objective": "Surveillance des comptes distants prestataires et revue des logs d'accès",
+            "input": null,
+            "model": "Audit accès + revue logs",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 6,
+            "plan_date": "2026-07-31",
+            "realisation_date": "2025-12-10",
+            "observations": "Logs incomplets sur 2 accès",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                5
+            ]
+        },
+        {
+            "id": 7,
+            "name": "Session annuelle de sensibilisation cyber NIS2",
+            "objective": "Formation obligatoire pour l'ensemble du personnel (e-learning + présentiel)",
+            "input": null,
+            "model": "E-learning + session présentielle + quiz",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 0,
+            "plan_date": "2026-10-31",
+            "realisation_date": "2025-10-22",
+            "observations": "87% participation ( cible 100%)",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                6
+            ]
+        },
+        {
+            "id": 8,
+            "name": "Formation juridique NIS2 pour les Dirigeants",
+            "objective": "Séance dédiée aux responsabilités pénales et administratives des organes dirigeants",
+            "input": null,
+            "model": "Formation juridique + cas pratiques",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 12,
+            "plan_date": "2026-08-28",
+            "realisation_date": "2025-02-20",
+            "observations": "100% formés",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                7
+            ]
+        },
+        {
+            "id": 9,
+            "name": "Suivi mensuel des KPIs NIS2",
+            "objective": "Collecte et analyse des indicateurs de conformité (tableau de bord)",
+            "input": null,
+            "model": "Extraction métriques + rapport mensuel",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 12,
+            "plan_date": "2026-07-05",
+            "realisation_date": "2026-01-08",
+            "observations": "Aucun KPI définis",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                2
+            ]
+        },
+        {
+            "id": 10,
+            "name": "Revue trimestrielle du comité NIS2",
+            "objective": "Point de suivi de la conformité avec la direction générale",
+            "input": null,
+            "model": "Comité pilotage NIS2 + plan actions",
+            "indicator": null,
+            "action_plan": null,
+            "periodicity": 3,
+            "plan_date": "2026-07-31",
+            "realisation_date": "2025-12-19",
+            "observations": "Manque direction",
+            "score": null,
+            "note": null,
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "next_id": null,
+            "standard": null,
+            "attributes": null,
+            "scope": null,
+            "status": 0,
+            "measures": [
+                2
+            ]
+        },
+        {
+            "id": 11,
+            "name": "Mise à jour Operating Système",
+            "objective": "S'assurer que les patchs des operating systèmes soient appliqués dans les délais par rapport aux CVEs trouvés",
+            "input": "Inventaire CMDB, Base CVE de mercator",
+            "model": "Veille éditeur -> Mise à jour version stable",
+            "indicator": "Nombre de CVE critiques non patchées",
+            "action_plan": null,
+            "periodicity": 3,
+            "plan_date": "2026-07-31",
+            "realisation_date": null,
+            "observations": "Aucun KPI définis",
+            "score": null,
+            "note": null,
+            "status": 0,
+            "measures": [
+                13
+            ]
+        },
+        {
+            "id": 12,
+            "name": "Mise à jour Logiciels",
+            "objective": "S'assurer que les patchs des logiciels soient appliqués dans les délais par rapport aux CVEs trouvés",
+            "input": "Inventaire CMDB, Base CVE de mercator",
+            "model": "Veille éditeur -> Mise à jour version stable",
+            "indicator": "Nombre de CVE critiques non patchées",
+            "action_plan": null,
+            "periodicity": 3,
+            "plan_date": "2026-07-31",
+            "realisation_date": null,
+            "observations": "Aucun KPI définis",
+            "score": null,
+            "note": null,
+            "status": 0,
+            "measures": [
+                14
+            ]
+        }
+    ],
+    "measures": [
+        {
+            "id": 1,
+            "domain_id": 1,
+            "name": "Art.21.2.a - Analyse de Risques",
+            "clause": "NIS2-Art.21.2.a",
+            "objective": "Évaluation des menaces pesant sur les actifs critiques selon méthodologie EBIOS RM ou équivalent",
+            "input": "Liste des actifs critiques, méthodologie EBIOS RM",
+            "model": "Analyse annuelle selon ISO 27005 ou EBIOS RM",
+            "indicator": "Target: Score résiduel ≤ acceptable | Frequency: Annuel | Owner: RSSI",
+            "action_plan": "Plan de traitement des risques validé par Direction",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                1
+            ]
+        },
+        {
+            "id": 2,
+            "domain_id": 1,
+            "name": "Art.21.1 - Contrôle de conformité",
+            "clause": "NIS2-Art.21.1",
+            "objective": "Vérification interne du respect des mesures NIS2 via audits et contrôles périodiques",
+            "input": "Référentiel NIS2, checklist conformité",
+            "model": "Audit annuel + revue trimestrielle",
+            "indicator": "Target: ≥ 95% | Current: 75% | Frequency: Mensuel | Owner: RSSI | Criticality: Critique",
+            "action_plan": "Plan d'actions correctrices avec échéances",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                2,
+                10,
+                9
+            ]
+        },
+        {
+            "id": 3,
+            "domain_id": 2,
+            "name": "Art.21.2.c - Sauvegardes et Restauration",
+            "clause": "NIS2-Art.21.2.c",
+            "objective": "Maintien de la disponibilité des données par sauvegardes quotidiennes/hebdomadaires et tests",
+            "input": "Politique de sauvegarde, règle 3-2-1",
+            "model": "Sauvegarde quotidienne + hebdo hors site + test annuel",
+            "indicator": "Target: 100% | Current: 100% | Frequency: Annuel | Owner: Responsable IT",
+            "action_plan": "Tests de restauration Q2",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                3
+            ]
+        },
+        {
+            "id": 4,
+            "domain_id": 3,
+            "name": "Art.23 - Notifications ANSSI",
+            "clause": "NIS2-Art.23",
+            "objective": "Processus d'alerte légale en cas d'incident significatif (< 24h)",
+            "input": "Procédure qualification, contact ANSSI",
+            "model": "Détection → Qualification (4h) → Notification (24h)",
+            "indicator": "Target: < 12h | Frequency: Par incident | Owner: RSSI | Criticality: Critique",
+            "action_plan": "Procédure documentée et testée",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                4
+            ]
+        },
+        {
+            "id": 5,
+            "domain_id": 4,
+            "name": "Art.21.2.e - Gestion des Tiers Critiques",
+            "clause": "NIS2-Art.21.2.e",
+            "objective": "Contrôle des risques liés aux fournisseurs via clauses contractuelles et audits",
+            "input": "Cartographie tiers, grille évaluation cyber",
+            "model": "Évaluation + clauses + audit annuel",
+            "indicator": "Target: 100% | Current: 65% | Frequency: Trimestriel | Owner: Achats FR | Criticality: Majeur",
+            "action_plan": "Révision contrats en cours",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                6,
+                5
+            ]
+        },
+        {
+            "id": 6,
+            "domain_id": 5,
+            "name": "Art.20.1 - Sensibilisation NIS2",
+            "clause": "NIS2-Art.20.1.a",
+            "objective": "Formation hygiène informatique pour tous les employés (phishing, mots de passe, etc.)",
+            "input": "Modules e-learning, supports sensibilisation",
+            "model": "Session annuelle + tests phishing trimestriels",
+            "indicator": "Target: 100% | Current: 87% | Frequency: Annuel | Owner: RSSI | Criticality: Majeur",
+            "action_plan": "Relance employés non formés",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                7
+            ]
+        },
+        {
+            "id": 7,
+            "domain_id": 5,
+            "name": "Art.20.1 - Formation Dirigeants NIS2",
+            "clause": "NIS2-Art.20.1.b",
+            "objective": "Formation spécifique obligations Art. 20 (responsabilité pénale et administrative)",
+            "input": "Support juridique NIS2, cas pratiques",
+            "model": "Session annuelle organes dirigeants",
+            "indicator": "Target: 100% | Current: 100% | Frequency: Annuel | Owner: RSSI",
+            "action_plan": "Session Q1",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": [
+                8
+            ]
+        },
+        {
+            "id": 8,
+            "domain_id": 6,
+            "name": "Art.21.2.b - Sortie d'effectif",
+            "clause": "NIS2-Art.21.2.b",
+            "objective": "Processus de révocation immédiate des accès au départ d'un collaborateur",
+            "input": "Procédure off-boarding, checklist révocation",
+            "model": "Révocation J+0 tous accès (AD, VPN, applicatifs)",
+            "indicator": "Target: J+0 | Current: J+1 | Frequency: Mensuel | Owner: Responsable IT | Criticality: Majeur",
+            "action_plan": "Automatisation en cours",
+            "created_at": "2026-04-30T06:25:42.000000Z",
+            "updated_at": "2026-04-30T06:25:42.000000Z",
+            "standard": null,
+            "attributes": null,
+            "controls": []
+        },
+        {
+            "id": 9,
+            "domain_id": 7,
+            "name": "Maintien à jour des Systèmes d'exploitation",
+            "clause": "VULN-OS-01",
+            "objective": "Corriger les vulnérabilités des systèmes d'exploitation identifiées via CPE/CVE",
+            "input": "Inventaire CMDB, Base CVE de mercator",
+            "model": "Veille éditeur -> Mise à jour version stable",
+            "indicator": "Nombre de CVE critiques non patchées",
+            "action_plan": "Upgrade vers la version stable supérieure",
+            "created_at": "2026-04-30T09:15:09.000000Z",
+            "updated_at": "2026-04-30T09:32:22.000000Z",
+            "standard": null,
+            "attributes": "#Application_Security #Corrective #Detect",
+            "controls": [
+                11
+            ]
+        },
+        {
+            "id": 10,
+            "domain_id": 8,
+            "name": "Maintien à jour des Logiciels",
+            "clause": "VULN-LOG-01",
+            "objective": "Corriger les vulnérabilités logicielles identifiées via CPE/CVE",
+            "input": "Inventaire CMDB, Base CVE de mercator",
+            "model": "Veille éditeur -> Mise à jour version stable",
+            "indicator": "Nombre de CVE critiques non patchées",
+            "action_plan": "Upgrade vers la version stable supérieure",
+            "created_at": "2026-04-30T09:18:56.000000Z",
+            "updated_at": "2026-04-30T09:18:56.000000Z",
+            "standard": null,
+            "attributes": "#Application_Security #Corrective #Detect",
+            "controls": [
+                12
+            ]
+        }
+    ],
+    "documents": []
+}
