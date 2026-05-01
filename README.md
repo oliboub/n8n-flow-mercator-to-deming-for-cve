@@ -2,6 +2,8 @@
 
 > Transformer une CMDB technique en moteur opérationnel de pilotage cyber — de la détection à l'action.
 
+## ATTENTION: tous ces fichiers et le process sont fourni à titre d'exemple de faisabilité, et doivent être adaptés à votre environnement et testés. Je ne peux pas garantirni prendere d'engagement sur l'intégrité et le risque de perte de vos données
+
 ---
 
 ## Vue d'ensemble
