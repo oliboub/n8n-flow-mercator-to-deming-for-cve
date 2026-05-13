@@ -1,5 +1,5 @@
 {
-  "name": "Phase 1 - Analyse mercator cves v1",
+  "name": "Phase 1 - Analyse mercator cves v2",
   "nodes": [
     {
       "parameters": {
@@ -9,11 +9,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -752,
-        432
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "95c50c48-714e-4095-9703-18cefde0bb67",
+      "id": "a3db20b6-12b4-4a96-8f67-c0f5b073fad5",
       "name": "Sticky Note2"
     },
     {
@@ -41,19 +41,19 @@
             {
               "id": "67844263-1645-4a88-af12-1dc03fd19430",
               "name": "ollamaHost",
-              "value": "localhost",
+              "value": "172.17.0.1",
               "type": "string"
             },
             {
               "id": "be707c9f-6762-45c0-8730-a3fcc028bd78",
               "name": "ollamaModel",
-              "value": "qwen3.5:397b-cloud",
+              "value": "blissful_ishizaka_626/gemma4-cloud:latest",
               "type": "string"
             },
             {
               "id": "485a5e5e-a87c-4ecd-80f7-583a5fc03f13",
               "name": "apiHost",
-              "value": "localhost",
+              "value": "172.17.0.1",
               "type": "string"
             },
             {
@@ -65,7 +65,7 @@
             {
               "id": "ac2b209e-4d60-488e-8ce4-11742245c1c4",
               "name": "mercatorHost",
-              "value": "localhost",
+              "value": "172.17.0.1",
               "type": "string"
             },
             {
@@ -77,13 +77,19 @@
             {
               "id": "c4d81f26-0029-49f2-9959-fd3b777feee9",
               "name": "demingHost",
-              "value": "localhost",
+              "value": "172.17.0.1",
               "type": "string"
             },
             {
               "id": "ddce8adb-161a-40c3-82b2-18166e47a637",
               "name": "demingPort",
               "value": "8030",
+              "type": "string"
+            },
+            {
+              "id": "4ed64055-6444-4c62-9544-e4aea34c9b5e",
+              "name": "ollamaApiKey",
+              "value": "9dd4f4599f854ad2ad6340e80e8a7e4f.HcW_DV_fTwYXrNRMf8x6MUsN",
               "type": "string"
             }
           ]
@@ -93,10 +99,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -656,
-        608
+        96,
+        176
       ],
-      "id": "a59ab72a-689d-456c-9d66-aebdac1594fe",
+      "id": "dac1d62e-9d01-44fd-ac55-a895b1c090b5",
       "name": "Definitions initiales"
     },
     {
@@ -106,7 +112,7 @@
             {
               "id": "ac6bd696-8500-463b-96e3-9188aad19be1",
               "name": "prompt",
-              "value": "=# RAG: \n## cves\n{{ JSON.stringify($json.cves, null, 2) }}\n\n## Logiciels\n\n{{ $json.logiciels }}\n\n## ref_json \n\n{{ $json.reference.map(item => JSON.stringify(item, null, 2)).join('\\n\\n') }}\n\nBonjour,\n\n## Ton role est le suivant: analyste en sécurité informatique et gestionnaire de risque\n\n## Contexte: besoin d'intégrer des plans d'actions sutie à la découverte de CPEs dans mes logiciels à partir de la base de cartographie: mercator CMDB\n\n## Objectif final, automatiser avec n8n a création des actions dans deming par extraction automatique de mercator.\n\n## Objectif de ce prompt: peux-tu prendre en compte le fichier joint et me proposer un plan d'action pour corriger les cve trouvées sur\nchaque applications.\n- le fichier cves contient pour chaque application : les cpes, les cves et leur descriptions\n- le fichier logiciels contient les informations comme l'operating systems, la criticité par les axes security_need, le nombre de users impactés, et le rto, et rpo  quand cela existe.\nle fichier ref_json contient les références du json et les id des controls à utiliser\n\nIl me faudrait un plan d'action que je puisse intégrer dans un outil de gestion des risques avec les solutions proposées (logiciel, version, niveau de risque...)\n\n**J'aimerais que le plan d'action soit au format json, en respectant strictement la structure du ficher mis en référence: ref_json et en utilisant les catégories existantes les plus appropriées.**\nTu peux ajouter des domains, des attributes, des measures et des controles si tu ne trouve pas l'adéquation avec les cve.\n\nLes domaines et clauses à utliser sont:\n| framework | Name | clause\n|-----------|------|---------|\n| Vulnerability Management | Mise à jour logiciels | VULN-LOG-01 |\n| Vulnerability Management | Mise à jour Operating Système | VULN-OS-01 |\nen fonction de ce que tu trouveras.\n\n\nChaque entrée de \"measures\" doit avoir un champ:\n\"clause\": \"VULN-LOG-01\" ou \"clause\": \"VULN-OS-01\"\net un champ \"controls\" qui correspond aux id des \"controls\" de \"VULN-LOG-01\" ou  \"VULN-OS-01\" de ref_json\n\"measures\": [\n                control1/control2\n            ]\n\npropose moi les controls manquants pour les domaines àà utiliser\n\n**Il me faut une entrée dans l'outil pour chaque logiciel ou système d'exploitation qui nécessite une action.**\n\nOn ne parle pas de n8n dans ce prompt.\n\nLa réponse doit etre en JSON uniquement\n\n## Complément d'informations\nsite de deming pour bien comprendre les domaines, les listes de controles et les measurements  \nhttps://github.com/dbarzin/deming\n\nExemples de domaines:\n- Mise à jour logiciels\n- Mise à jour Operating Système\n\n## Règles de jointure des données\n- Joindre cves et logiciels sur : cves[Nom] == logiciels[name]\n- Pour chaque logiciel, récupérer : security_need_c, security_need_i, \n  security_need_a, security_need_t, rto, rpo, logicalServers.name, \n  logicalServers.operating_system\n\n## Règle de dispatch des clauses\n- VULN-OS-01 : si logiciels.name == logiciels.logicalServers.operating_system\n               (ex: \"Ubuntu 22.04.3 LTS\", \"Windows Server 2025\")\n- VULN-LOG-01 : tous les autres logiciels applicatifs\n\n## Calcul de priorité (champ \"note\" ou \"observations\" du control)\npriority = combinaison de CVE Score + security_need max :\n  - Critical : CVE Score >= 9.0 OU (security_need >= 3 ET CVE Score >= 7.0)\n  - High     : CVE Score >= 7.0 OU security_need >= 3\n  - Medium   : CVE Score >= 4.0\n  - Low      : CVE Score < 4.0\n\n## Calcul de plan_date (date ISO à partir d'aujourd'hui)\n  - Critical : J+15\n  - High     : J+30\n  - Medium   : J+90\n  - Low      : J+180\n\n## Champ scope (obligatoire dans chaque control)\nFormat : \"<software_name> <version> | <logicalServers.name> | <logicalServers.operating_system>\"\nExemple : \"mariadb 10.11.3 | LOGICAL-SERVER-13 | Ubuntu 22.04.3 LTS\"\n\n## Valeurs par défaut\n- controls.status : 0 (jamais null)\n- controls.score  : null\n- controls.realisation_date : null\n\n### Security_need\nsecurity_need_c\tint\tConfidentiality\nsecurity_need_i\tint\tIntegrity\nsecurity_need_a\tint\tAvailability\nsecurity_need_t\tint\tTraceability\nrto\tint\tRecovery Time Objective\nrpo\tint\tRecovery Point Objective\n\n### Besoins de sécurité\n\nLes besoins de sécurité de l'information sont exprimés en termes de `confidentialité`, `intégrité`, `disponibilité` et `traçabilité` avec l'échelle suivante:\n\n### classification de sécurité (CIDT):  \n\n| Classification  | Type |            Description                  |\n|-----------------|:----:|-----------------------------------------|\n| Confidentialité |  C   | Protège l’information contre tout accès non autorisé.<br>L’objectif est que **seules les personnes autorisées** puissent consulter les données.<br><br>**Exemples:** mots de passe, données personnelles, documents sensibles. |\n| Intégrité       | I    | Garantit que l’information est **exacte, complète et non altérée**.<br>L’objectif est d’empêcher toute **modification non autorisée ou accidentelle** des données.<br><br>**Exemples:** éviter la corruption de données, empêcher des modifications non autorisées. |\n| Disponibilité   | D    | Assure que l’information et les services sont **accessibles quand on en a besoin**.<br>Un système indisponible est un système inutilisable.<br><br>**Exemples:** pannes, attaques DDoS, maintenance non planifiée. |\n| Traçabilité | T | Permet de **savoir qui a fait quoi, quand et comment**.<br>Elle repose sur les journaux, les logs, l’audit et l’identification.<br><br>**Exemples:** logs d’accès, historique des actions, audit de sécurité. |\n\n\n### Niveaux de sécurité\n| Niveau | Description  |                 Couleur                  |\n|:------:|:------------:|:----------------------------------------:|\n|   0    | Insignifiant |                  Blanc                   |\n|   1    |    Faible    |  <span style=\"color:green\">Vert</span>   |\n|   2    |    Moyen     | <span style=\"color:yellow;\">Jaune</span> |\n|   3    |     Fort     | <span style=\"color:orange\">Orange</span> |\n|   4    |  Très fort   |   <span style=\"color:red\">Rouge</span>   |\n\n",
+              "value": "=# RAG: \n## cves\n{{ JSON.stringify($json.cves, null, 2) }}\n\n## Logiciels\n\n{{ $json.logiciels }}\n\n## ref_json \n\n{{ $json.reference.map(item => JSON.stringify(item, null, 2)).join('\\n\\n') }}\n\nBonjour,\n\n## Ton role est le suivant: analyste en sécurité informatique et gestionnaire de risque\n\n## Contexte: besoin d'intégrer des plans d'actions sutie à la découverte de CPEs dans mes logiciels à partir de la base de cartographie: mercator CMDB\n\n## Objectif final, automatiser avec n8n a création des actions dans deming par extraction automatique de mercator.\n\n## Objectif de ce prompt: peux-tu prendre en compte le fichier joint et me proposer un plan d'action pour corriger les cve trouvées sur\nchaque applications.\n- le fichier cves contient pour chaque application : les cpes, les cves et leur descriptions\n- le fichier logiciels contient les informations comme l'operating systems, la criticité par les axes security_need, le nombre de users impactés, et le rto, et rpo  quand cela existe.\nle fichier ref_json contient les références du json et les id des controls à utiliser\n\nIl me faudrait un plan d'action que je puisse intégrer dans un outil de gestion des risques avec les solutions proposées (logiciel, version, niveau de risque...)\n\n**J'aimerais que le plan d'action soit au format json, en respectant strictement la structure du ficher mis en référence: ref_json et en utilisant les catégories existantes les plus appropriées.**\nLes 4 catégories: atributes, domains, measuires et controls doivent exister, même si certaines pourraient être vides.\nTu peux ajouter des domains, des attributes, des measures et des controles si tu ne trouve pas l'adéquation avec les cve.\n\nLes domaines et clauses à utliser sont:\n| framework | Name | clause\n|-----------|------|---------|\n| Vulnerability Management | Mise à jour logiciels | VULN-LOG-01 |\n| Vulnerability Management | Mise à jour Operating Système | VULN-OS-01 |\nen fonction de ce que tu trouveras.\n\n\nChaque entrée de \"measures\" doit avoir un champ:\n\"clause\": \"VULN-LOG-01\" ou \"clause\": \"VULN-OS-01\"\net un champ \"controls\" qui correspond aux id des \"controls\" de \"VULN-LOG-01\" ou  \"VULN-OS-01\" de ref_json\n\"measures\": [\n                control1/control2\n            ]\n\npropose moi les controls manquants pour les domaines à utiliser.\nNe pas créer de controls qui ne sont pas liés à une measure.\n\n**Il me faut une entrée dans l'outil pour chaque logiciel ou système d'exploitation qui nécessite une action.**\n\nOn ne parle pas de n8n dans ce prompt.\n\nLa réponse doit etre en JSON uniquement\n\n## Complément d'informations\nsite de deming pour bien comprendre les domaines, les listes de controles et les measurements  \nhttps://github.com/dbarzin/deming\n\nExemples de domaines:\n- Mise à jour logiciels\n- Mise à jour Operating Système\n\n## Règles de jointure des données\n- Joindre cves et logiciels sur : cves[Nom] == logiciels[name]\n- Pour chaque logiciel, récupérer : security_need_c, security_need_i, \n  security_need_a, security_need_t, rto, rpo, logicalServers.name, \n  logicalServers.operating_system\n\n## Règle de dispatch des clauses\n- VULN-OS-01 : si logiciels.name == logiciels.logicalServers.operating_system\n               (ex: \"Ubuntu 22.04.3 LTS\", \"Windows Server 2025\")\n- VULN-LOG-01 : tous les autres logiciels applicatifs\n\n## Calcul de priorité (champ \"note\" ou \"observations\" du control)\npriority = combinaison de CVE Score + security_need max :\n  - Critical : CVE Score >= 9.0 OU (security_need >= 3 ET CVE Score >= 7.0)\n  - High     : CVE Score >= 7.0 OU security_need >= 3\n  - Medium   : CVE Score >= 4.0\n  - Low      : CVE Score < 4.0\n\n## Calcul de plan_date (date ISO à partir d'aujourd'hui)\n  - Critical : J+15\n  - High     : J+30\n  - Medium   : J+90\n  - Low      : J+180\n\n## Champ scope (obligatoire dans chaque control)\nFormat : \"<software_name> <version> | <logicalServers.name> | <logicalServers.operating_system>\"\nExemple : \"mariadb 10.11.3 | LOGICAL-SERVER-13 | Ubuntu 22.04.3 LTS\"\n\n## Valeurs par défaut\n- controls.status : 0 (jamais null)\n- controls.score  : null\n- controls.realisation_date : null\n\n### Security_need\nsecurity_need_c\tint\tConfidentiality\nsecurity_need_i\tint\tIntegrity\nsecurity_need_a\tint\tAvailability\nsecurity_need_t\tint\tTraceability\nrto\tint\tRecovery Time Objective\nrpo\tint\tRecovery Point Objective\n\n### Besoins de sécurité\n\nLes besoins de sécurité de l'information sont exprimés en termes de `confidentialité`, `intégrité`, `disponibilité` et `traçabilité` avec l'échelle suivante:\n\n### classification de sécurité (CIDT):  \n\n| Classification  | Type |            Description                  |\n|-----------------|:----:|-----------------------------------------|\n| Confidentialité |  C   | Protège l’information contre tout accès non autorisé.<br>L’objectif est que **seules les personnes autorisées** puissent consulter les données.<br><br>**Exemples:** mots de passe, données personnelles, documents sensibles. |\n| Intégrité       | I    | Garantit que l’information est **exacte, complète et non altérée**.<br>L’objectif est d’empêcher toute **modification non autorisée ou accidentelle** des données.<br><br>**Exemples:** éviter la corruption de données, empêcher des modifications non autorisées. |\n| Disponibilité   | D    | Assure que l’information et les services sont **accessibles quand on en a besoin**.<br>Un système indisponible est un système inutilisable.<br><br>**Exemples:** pannes, attaques DDoS, maintenance non planifiée. |\n| Traçabilité | T | Permet de **savoir qui a fait quoi, quand et comment**.<br>Elle repose sur les journaux, les logs, l’audit et l’identification.<br><br>**Exemples:** logs d’accès, historique des actions, audit de sécurité. |\n\n\n### Niveaux de sécurité\n| Niveau | Description  |                 Couleur                  |\n|:------:|:------------:|:----------------------------------------:|\n|   0    | Insignifiant |                  Blanc                   |\n|   1    |    Faible    |  <span style=\"color:green\">Vert</span>   |\n|   2    |    Moyen     | <span style=\"color:yellow;\">Jaune</span> |\n|   3    |     Fort     | <span style=\"color:orange\">Orange</span> |\n|   4    |  Très fort   |   <span style=\"color:red\">Rouge</span>   |\n\n",
               "type": "string"
             }
           ]
@@ -116,10 +122,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1088,
-        848
+        1856,
+        544
       ],
-      "id": "89b66107-cf51-47c2-a816-acb94210bec5",
+      "id": "abfc41ce-6230-4123-88fd-38e9eaa56eea",
       "name": "Prompt llm"
     },
     {
@@ -131,10 +137,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        496,
-        624
+        1248,
+        192
       ],
-      "id": "37277856-0689-429d-b824-92a49171fe47",
+      "id": "67bcc6df-3c56-4a55-9c6b-de738c02b997",
       "name": "Merge"
     },
     {
@@ -146,10 +152,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        768,
-        848
+        1536,
+        544
       ],
-      "id": "cfae10f5-7552-4b2e-b3de-46da2a22a31e",
+      "id": "49275c97-c175-456b-8d15-51450e9f187b",
       "name": "Merge1"
     },
     {
@@ -164,10 +170,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -432,
-        608
+        320,
+        176
       ],
-      "id": "015fd986-76eb-4809-b563-34f3967b3a48",
+      "id": "0d710564-2b30-4244-9403-03f453e88943",
       "name": "get mercator token"
     },
     {
@@ -187,29 +193,38 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -176,
-        784
+        576,
+        352
       ],
-      "id": "eb5678b4-c499-4d65-8bee-912e96bdffa7",
+      "id": "c578a4c4-58da-45da-986d-c2cb33651f5a",
       "name": "get mercator query 7"
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json.content\n\n// Étape 1 : Extraction du bloc JSON et suppression des délimiteurs (inchangé)\nconst match = raw.match(/```json\\s*([\\s\\S]*?)```/);\n\nlet cleaned;\n\nif (match && match[1]) {\n    cleaned = match[1].trim();\n} else {\n    cleaned = raw.replace(/^```json/, '').replace(/```$/, '').trim();\n}\n\n// -------------------------------------------------------------------\n// Étape 2 : NETTOYAGE EXTRÊME ET CIBLÉ (V5.0)\n// -------------------------------------------------------------------\n\n// 2a. Suppression des caractères de contrôle invisibles et des séparateurs.\n// (Gère \\u200b, \\uFEFF et autres plages de contrôle)\ncleaned = cleaned.replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u2000-\\u200F\\u2028-\\u202F\\u200b\\uFEFF]/g, '');\n\n// 2b. CIBLAGE ET SUPPRESSION SPÉCIFIQUE DU CARACTÈRE '<ctrl46>' (\\u5E7B)\n// Nous utilisons le code Unicode pour forcer la suppression même si la regex précédente échoue.\n// Cette ligne devrait éliminer tous les '<ctrl46>' restants.\ncleaned = cleaned.replace(/\\u5E7B/g, ''); \n\n// 2c. FILTRE ADDITIONNEL : Supprimer TOUS les caractères non-ASCII qui ne sont pas des lettres françaises\n// Caractères > U+00FF non répertoriés sont supprimés. Ce filtre devrait attraper d'autres caractères exotiques.\n//cleaned = cleaned.replace(/[^\\u0000-\\u007F\\u00C0-\\u00FF]/g, ''); \n\n// 2d. Correction des sauts de ligne/retours chariot NON ÉCHAPPÉS.\n// Remplacement par \\n échappé pour rendre le JSON valide.\ncleaned = cleaned.replace(/\\r?\\n|\\r/g, '\\\\n'); \n\n// -------------------------------------------------------------------\n// Étape 3 : PARSING SÉCURISÉ\n// -------------------------------------------------------------------\n\nlet corrected = cleaned; // Déclaré pour la portée du catch\n\ntry {\n    // 3a. Correction des virgules orphelines (ex: {\"a\": 1,})\n    corrected = cleaned.replace(/,\\s*([}\\]])/g, '$1');\n    \n    const parsed = JSON.parse(corrected);\n    return [{ json: parsed }];\n} catch (e) {\n    // Renvoyer l'erreur avec le contenu nettoyé qui a échoué\n    return [{ json: { error: \"JSON parsing failed\", details: e.message, contentAttempt: corrected } }];\n}"
+        "jsCode": "const raw = $('HTTP Request Ollama').first().json.body.message.content\n  //$input.first().json.content\n\n// Étape 1 : Extraction du bloc JSON et suppression des délimiteurs (inchangé)\nconst match = raw.match(/```json\\s*([\\s\\S]*?)```/);\n\nlet cleaned;\n\nif (match && match[1]) {\n    cleaned = match[1].trim();\n} else {\n    cleaned = raw.replace(/^```json/, '').replace(/```$/, '').trim();\n}\n\n// -------------------------------------------------------------------\n// Étape 2 : NETTOYAGE EXTRÊME ET CIBLÉ (V5.0)\n// -------------------------------------------------------------------\n\n// 2a. Suppression des caractères de contrôle invisibles et des séparateurs.\n// (Gère \\u200b, \\uFEFF et autres plages de contrôle)\ncleaned = cleaned.replace(/[\\u0000-\\u001F\\u007F-\\u009F\\u2000-\\u200F\\u2028-\\u202F\\u200b\\uFEFF]/g, '');\n\n// 2b. CIBLAGE ET SUPPRESSION SPÉCIFIQUE DU CARACTÈRE '<ctrl46>' (\\u5E7B)\n// Nous utilisons le code Unicode pour forcer la suppression même si la regex précédente échoue.\n// Cette ligne devrait éliminer tous les '<ctrl46>' restants.\ncleaned = cleaned.replace(/\\u5E7B/g, ''); \n\n// 2c. FILTRE ADDITIONNEL : Supprimer TOUS les caractères non-ASCII qui ne sont pas des lettres françaises\n// Caractères > U+00FF non répertoriés sont supprimés. Ce filtre devrait attraper d'autres caractères exotiques.\n//cleaned = cleaned.replace(/[^\\u0000-\\u007F\\u00C0-\\u00FF]/g, ''); \n\n// 2d. Correction des sauts de ligne/retours chariot NON ÉCHAPPÉS.\n// Remplacement par \\n échappé pour rendre le JSON valide.\ncleaned = cleaned.replace(/\\r?\\n|\\r/g, '\\\\n'); \n\n// -------------------------------------------------------------------\n// Étape 3 : PARSING SÉCURISÉ\n// -------------------------------------------------------------------\n\nlet corrected = cleaned; // Déclaré pour la portée du catch\n\ntry {\n    // 3a. Correction des virgules orphelines (ex: {\"a\": 1,})\n    corrected = cleaned.replace(/,\\s*([}\\]])/g, '$1');\n    \n    const parsed = JSON.parse(corrected);\n    return [{ json: parsed }];\n} catch (e) {\n    // Renvoyer l'erreur avec le contenu nettoyé qui a échoué\n    return [{ json: { error: \"JSON parsing failed\", details: e.message, contentAttempt: corrected } }];\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1808,
-        832
+        2640,
+        544
       ],
-      "id": "9e051ecd-4899-46eb-9252-d2116371e79e",
+      "id": "4e86b9a8-5204-4df9-8e1a-96c887e3b357",
       "name": "nettoie json1"
     },
     {
       "parameters": {
         "method": "POST",
         "url": "=http://{{ $('Definitions initiales').item.json.ollamaHost }}:11434/api/chat",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer  {{ $('Definitions initiales').item.json.ollamaApiKey }}"
+            }
+          ]
+        },
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -227,7 +242,7 @@
             },
             {
               "name": "options",
-              "value": "={{ { \"temperature\": 0.1, \"top_p\": 0.9, \"num_predict\": 16384 } }}"
+              "value": "={{ { \"temperature\": 0.1, \"top_p\": 0.9, \"num_predict\": 16384} }}"
             },
             {
               "name": "format",
@@ -235,28 +250,28 @@
             },
             {
               "name": "keep_alive",
-              "value": "30m"
+              "value": "60m"
             }
           ]
         },
         "options": {
           "response": {
             "response": {
+              "fullResponse": true,
               "responseFormat": "json"
             }
           },
-          "timeout": 1800000
+          "timeout": 3600000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1328,
-        848
+        2208,
+        544
       ],
-      "id": "bce96db2-1b98-4c3a-836a-af3b08b60ae8",
-      "name": "HTTP Request Ollama",
-      "onError": "continueErrorOutput"
+      "id": "856ad698-e864-4cd6-8186-dec7c19abdd8",
+      "name": "HTTP Request Ollama"
     },
     {
       "parameters": {
@@ -287,10 +302,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1616,
-        832
+        2448,
+        544
       ],
-      "id": "177be22a-31c4-4916-b8fd-cbac080bef29",
+      "id": "bc18d12e-ca29-4d9d-bf0a-d0ee58d67c08",
       "name": "count tokens"
     },
     {
@@ -302,11 +317,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1168,
-        448
+        -416,
+        16
       ],
       "typeVersion": 1,
-      "id": "04df50e9-74af-47b6-b0e1-bbd60d827c08",
+      "id": "898b588f-5a06-49d1-8b24-b4c6b525f725",
       "name": "Sticky Note6"
     },
     {
@@ -314,10 +329,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1040,
-        608
+        -288,
+        176
       ],
-      "id": "f04dbe92-daef-4bb1-aa8c-df8a8482b10a",
+      "id": "770c1d14-5b6c-4ead-8475-fc7c2079074e",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -341,10 +356,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -176,
-        512
+        576,
+        80
       ],
-      "id": "0d1a3adf-3fe0-4fc5-b4dc-55137d113486",
+      "id": "d4f8facb-24f0-4d3c-9e19-c47961ff3e3f",
       "name": "get mercator report cve "
     },
     {
@@ -355,10 +370,10 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        32,
-        512
+        784,
+        80
       ],
-      "id": "603c8d34-4495-489c-ba10-c6d120daa01d",
+      "id": "6c601a93-fdde-4457-849c-230182b857e3",
       "name": "Extract from File1"
     },
     {
@@ -376,10 +391,10 @@
       "type": "n8n-nodes-base.renameKeys",
       "typeVersion": 1,
       "position": [
-        32,
-        784
+        784,
+        352
       ],
-      "id": "fb45d419-9120-4334-a39a-9ace448193d0",
+      "id": "a8d5188a-c9e0-4e78-9810-492c5bc11d4f",
       "name": "Rename Keys"
     },
     {
@@ -391,10 +406,10 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        240,
-        512
+        992,
+        80
       ],
-      "id": "458bd3f3-8dde-4b52-a187-5f038748a9a0",
+      "id": "518540e9-6a0f-4678-82a0-39a435ef5302",
       "name": "Aggregate"
     },
     {
@@ -419,10 +434,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -416,
-        1312
+        336,
+        880
       ],
-      "id": "9155d441-d85b-480d-ab09-3777413fad5a",
+      "id": "9338dec4-5389-4400-972e-7bfba0f85eca",
       "name": "get deming token"
     },
     {
@@ -443,10 +458,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -160,
-        1088
+        592,
+        656
       ],
-      "id": "bcfd2d8a-cf2d-4137-8e8e-7c5354182ab1",
+      "id": "8e17ea1d-cc47-45b0-b8de-08c70f9db8a2",
       "name": "get deming attributes"
     },
     {
@@ -466,10 +481,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -160,
-        1248
+        592,
+        816
       ],
-      "id": "f9789bbd-4661-4d6f-b448-83f37a7a9812",
+      "id": "0a9c763f-8066-4a9d-9f64-d83248703de1",
       "name": "get deming domains"
     },
     {
@@ -489,10 +504,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -160,
-        1664
+        592,
+        1232
       ],
-      "id": "fce7bf7c-ac0c-412f-a54c-34f92e3f8fa0",
+      "id": "8a9ca8c7-b29e-4ce4-87c4-154f8d847c22",
       "name": "get deming controls"
     },
     {
@@ -512,10 +527,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -160,
-        1456
+        592,
+        1024
       ],
-      "id": "e5d77fac-0b36-4fe2-8262-f4b03930781a",
+      "id": "e7f01f7e-e18f-44db-8e06-a1751b576192",
       "name": "get deming measures"
     },
     {
@@ -525,10 +540,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        1088
+        816,
+        656
       ],
-      "id": "96f6a6d3-6018-4675-bc28-ff0413def894",
+      "id": "fab81cd8-99f8-4121-a9d5-02841596705e",
       "name": "add json header for attributes"
     },
     {
@@ -538,10 +553,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        1248
+        816,
+        816
       ],
-      "id": "480fc5be-b128-4059-beaf-c0c739b3cefc",
+      "id": "a5a89a2a-72ec-4f5d-aa83-9766bf5fb442",
       "name": "add json header for domains"
     },
     {
@@ -551,10 +566,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        1456
+        816,
+        1024
       ],
-      "id": "b7d2b293-dedb-4bbe-ad7b-f281d8369813",
+      "id": "339f398f-8c3c-4f65-ba73-4bd036455e17",
       "name": "add json header for measures"
     },
     {
@@ -564,10 +579,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        64,
-        1664
+        816,
+        1232
       ],
-      "id": "36f4371d-fead-4156-97b5-ba922a7ee232",
+      "id": "8630a082-a115-4fd8-af7d-ea08a398d589",
       "name": "add json header for controls"
     },
     {
@@ -577,10 +592,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        288,
-        1280
+        1040,
+        848
       ],
-      "id": "fa57dc61-74a5-488e-90dd-06bb89f04d46",
+      "id": "a8839140-6fe6-4d4b-a3fc-3cda3e4341e1",
       "name": "Merge2"
     },
     {
@@ -590,23 +605,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        464,
-        1312
+        1216,
+        880
       ],
-      "id": "d9024265-4c7f-4124-9557-14f9389afce8",
+      "id": "73977091-0bf0-45bc-8721-b8ceacfd3e8c",
       "name": "add json header for reference"
     },
     {
       "parameters": {
-        "jsCode": "// Récupération du premier item\nconst item = items[0].json;\n\n// Extraction et nettoyage (trim) du modèle pour enlever l'espace\nlet nom = \"cve_actions\";\nlet rawModel = $('Definitions initiales').first().json.ollamaModel || \"\";\nlet model = rawModel.trim().replace(/\\s+/g, '_'); // On enlève les espaces et on remplace ceux du milieu par des _\n\n// --- Génération du timestamp à l'heure de Paris (Europe/Paris) ---\nconst now = new Date();\nconst options = { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };\nconst formatter = new Intl.DateTimeFormat('fr-FR', options);\nconst partsTime = formatter.formatToParts(now);\n\n// Extraction des composants pour construire YYYYMMDD-HHMMSS\nconst t = {};\npartsTime.forEach(({type, value}) => t[type] = value);\nconst date_heure_str = `${t.year}${t.month}${t.day}-${t.hour}${t.minute}${t.second}`;\n\n// Création du nom de fichier\nconst parts = [nom, model, date_heure_str].filter(p => p !== \"\");\nconst filename = parts.join(\"_\");\n\nreturn [{\n    json: {\n        filename: filename + \".json\"\n    }\n}];"
+        "jsCode": "// Récupération du premier item\nconst item = items[0].json;\n\n// Extraction et nettoyage (trim) du modèle pour enlever l'espace\nlet nom = \"cve_actions\";\nlet rawModel = $('Definitions initiales').first().json.ollamaModel || \"\";\n//let model = rawModel.trim().replace(/\\s+/g, '_'); // On enlève les espaces et on remplace ceux du milieu par des _\nlet model = rawModel.trim().replace(/[^a-zA-Z0-9]/g, '_');\n\n// --- Génération du timestamp à l'heure de Paris (Europe/Paris) ---\nconst now = new Date();\nconst options = { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };\nconst formatter = new Intl.DateTimeFormat('fr-FR', options);\nconst partsTime = formatter.formatToParts(now);\n\n// Extraction des composants pour construire YYYYMMDD-HHMMSS\nconst t = {};\npartsTime.forEach(({type, value}) => t[type] = value);\nconst date_heure_str = `${t.year}${t.month}${t.day}-${t.hour}${t.minute}${t.second}`;\n\n// Création du nom de fichier\nconst parts = [nom, model, date_heure_str].filter(p => p !== \"\");\nconst filename = parts.join(\"_\");\n\nreturn [{\n    json: {\n        filename: filename + \".json\"\n    }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2064,
-        960
+        2896,
+        672
       ],
-      "id": "73b42345-7239-4748-bc78-2293156df451",
+      "id": "ccb9fe4a-0129-418c-aafe-ceb5e1ec1b73",
       "name": "define nom de fichier"
     },
     {
@@ -618,16 +633,16 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2272,
-        848
+        3104,
+        560
       ],
-      "id": "a2be9cfa-3035-4468-909f-00b7c0c21ab7",
+      "id": "cae330e5-1be2-49f0-b1bf-99b3f92d9ecd",
       "name": "Merge3"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://{{ $('Definitions initiales').item.json.apiHost }}:{{ $('Definitions initiales').item.json.apiPort }}/v3/sauve-json",
+        "url": "=http://172.17.0.1:{{ $('Definitions initiales').item.json.apiPort }}/v3/sauve-json",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -673,10 +688,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        2448,
-        848
+        3280,
+        560
       ],
-      "id": "9205c612-a4f1-4761-ba94-c032ce1ef606",
+      "id": "5b57e468-5bc0-40f4-8a24-be806b35cbc1",
       "name": "sauve json par API"
     }
   ],
@@ -1016,17 +1031,17 @@
     "binaryMode": "separate",
     "timeSavedMode": "fixed",
     "timezone": "Europe/Paris",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
     "saveDataErrorExecution": "none",
     "saveDataSuccessExecution": "none",
-    "saveManualExecutions": false
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
-  "versionId": "6bfe7f26-f10b-4046-878b-e844406eb676",
+  "versionId": "e4620f29-26e3-4273-9cf1-beb2a6f6bb8e",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "22f6c1676f95514e19ae9841dd694aac3c283c61598a8e9393d4d9cacbf212da"
+    "instanceId": "bdccda54b13bbe7df2d65c9a8d2df9954683e60099cb9ce83c84d4a8a4291c13"
   },
-  "id": "9lpY2A0GHB3iXwtq",
+  "id": "jBxCX8yjktsxCbWW",
   "tags": []
 }
