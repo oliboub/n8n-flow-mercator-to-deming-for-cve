@@ -1,0 +1,1023 @@
+{
+  "name": "Phase 1 - Analyse mercator cves v9-3",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## v5c - Boucle SplitInBatches corrigée\n- output 0 (loop) → Build Prompt → ... → POST/PUT → retour Split\n- output 1 (done) → Aggregate Results → sauvegarde\n- Parse error → retour Split (item ignoré, boucle continue)\n- Switch remplacé par IF (compatibilité n8n 2.x)\n- Parsing CSV logiciels\n- Champs protégés : status, realisation_date, score\n- plan_date recalculée si < J+15\n- status=2 → recréation | status=1 → update+warning | status=0 → update\n\n**Remplacez :**\n- company, directory par vos valeurs",
+        "height": 596,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "4d2d092e-f572-40e7-8517-eaa946a40eeb",
+      "name": "Note v5b"
+    },
+    {
+      "parameters": {
+        "content": "# Pensez à démarrer l'API !!",
+        "height": 376,
+        "width": 324,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        224
+      ],
+      "typeVersion": 1,
+      "id": "5fb36645-9f56-4853-adfc-c5a1d7d4abd2",
+      "name": "Note API"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1",
+              "name": "company",
+              "value": "olivier",
+              "type": "string"
+            },
+            {
+              "id": "d2",
+              "name": "directory",
+              "value": "/home/olivier/Documents/Python/mercator",
+              "type": "string"
+            },
+            {
+              "id": "d3",
+              "name": "temp",
+              "value": "temp_uploads",
+              "type": "string"
+            },
+            {
+              "id": "d4",
+              "name": "ollamaHost",
+              "value": "172.17.0.1",
+              "type": "string"
+            },
+            {
+              "id": "d5",
+              "name": "ollamaModel",
+              "value": "granite4.1:3b",
+              "type": "string"
+            },
+            {
+              "id": "d6",
+              "name": "apiHost",
+              "value": "172.17.0.1",
+              "type": "string"
+            },
+            {
+              "id": "d7",
+              "name": "apiPort",
+              "value": "8020",
+              "type": "string"
+            },
+            {
+              "id": "d8",
+              "name": "mercatorHost",
+              "value": "172.17.0.1",
+              "type": "string"
+            },
+            {
+              "id": "d9",
+              "name": "mercatorPort",
+              "value": "8081",
+              "type": "string"
+            },
+            {
+              "id": "d10",
+              "name": "demingHost",
+              "value": "172.17.0.1",
+              "type": "string"
+            },
+            {
+              "id": "d11",
+              "name": "demingPort",
+              "value": "8030",
+              "type": "string"
+            },
+            {
+              "id": "d12",
+              "name": "ollamaApiKey",
+              "value": "9dd4f4599f854ad2ad6340e80e8a7e4f.HcW_DV_fTwYXrNRMf8x6MUsN",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        400
+      ],
+      "id": "c7bc8364-3308-4604-9d4d-22870f51de03",
+      "name": "Definitions initiales"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        400
+      ],
+      "id": "2057307a-93b2-40b5-8116-20869f731d8d",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $json.mercatorHost }}:{{ $json.mercatorPort }}/api/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"login\": \"admin@admin.com\", \"password\": \"password\" }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        304
+      ],
+      "id": "7ff63877-d7eb-4f2b-ab41-376b2ee7ed1d",
+      "name": "get mercator token"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.mercatorHost }}:{{ $('Definitions initiales').item.json.mercatorPort }}/api/report/cve",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/octet-stream"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        224
+      ],
+      "id": "68c23dfb-4e72-4867-aeb0-0dd0f0e70512",
+      "name": "get mercator report cve"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        224
+      ],
+      "id": "6d9dc06c-7de3-4a70-b216-51d38d98ebd1",
+      "name": "Extract CVE xlsx"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "cves",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        992,
+        224
+      ],
+      "id": "4f624e76-4cd4-414b-b322-af25d4ea62c2",
+      "name": "Aggregate CVEs"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.mercatorHost }}:{{ $('Definitions initiales').item.json.mercatorPort }}/api/queries/execute/{{ $json.mercator_query_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get mercator token').item.json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1008,
+        432
+      ],
+      "id": "b8c5ded3-850b-4a90-87a6-40c826844e0c",
+      "name": "get mercator query 7"
+    },
+    {
+      "parameters": {
+        "keys": {
+          "key": [
+            {
+              "currentKey": "data",
+              "newKey": "logiciels"
+            }
+          ]
+        },
+        "additionalOptions": {}
+      },
+      "type": "n8n-nodes-base.renameKeys",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        432
+      ],
+      "id": "d340fd51-e700-4ebe-ad5e-cbb319d1a2fc",
+      "name": "Rename Keys logiciels"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1488,
+        256
+      ],
+      "id": "ff426576-1a9c-4a85-99c5-ad5da2fc005a",
+      "name": "Merge CVE + Logiciels"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        816,
+        704
+      ],
+      "id": "8a73c0df-dc83-4a55-85f8-1ccaa4489ac1",
+      "name": "Merge Deming measures+controls"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1744,
+        560
+      ],
+      "id": "ce456081-093a-49e5-852e-7b060e0e93a7",
+      "name": "Merge All"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/login",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "api@admin.localhost"
+            },
+            {
+              "name": "password",
+              "value": "12345678"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        336,
+        704
+      ],
+      "id": "b9b53e03-29b1-4859-a3e4-41550cb7f799",
+      "name": "get deming token"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        624
+      ],
+      "id": "520e0868-ef6a-411e-8e81-2d8cd3718ce3",
+      "name": "get deming measures"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        784
+      ],
+      "id": "71a73046-d75e-463c-a3ab-5f9c0200fd5a",
+      "name": "get deming controls"
+    },
+    {
+      "parameters": {
+        "jsCode": "// =============================================================\n// PRÉPARE UN ITEM PAR LOGICIEL × SERVEUR\n// Input : 1 item avec cves[], logiciels (CSV string), measures[], controls[]\n// =============================================================\n\nconst input = $input.first().json;\nconst cves             = input.cves || [];\nconst measures         = input.measures || input.data || [];\nconst existingControls = input.controls || [];\n\n// --- Parser le CSV logiciels ---\nfunction parseCSV(raw) {\n  if (!raw) return [];\n  if (Array.isArray(raw)) return raw;\n  const lines = String(raw).split(/\\r?\\n/);\n  if (lines.length < 2) return [];\n  const headers = lines[0].split(';').map(h => h.replace(/^\"|\"$/g, '').trim());\n  const rows = [];\n  for (let i = 1; i < lines.length; i++) {\n    const line = lines[i].trim();\n    if (!line) continue;\n    const fields = [];\n    let current = '', inQuotes = false;\n    for (let j = 0; j < line.length; j++) {\n      const ch = line[j];\n      if (ch === '\"') {\n        if (inQuotes && line[j+1] === '\"') { current += '\"'; j++; }\n        else { inQuotes = !inQuotes; }\n      } else if (ch === ';' && !inQuotes) {\n        fields.push(current.trim()); current = '';\n      } else { current += ch; }\n    }\n    fields.push(current.trim());\n    if (fields.length < headers.length) continue;\n    const row = {};\n    headers.forEach((h, idx) => { row[h] = fields[idx] || ''; });\n    rows.push(row);\n  }\n  return rows;\n}\n\nconst logiciels = parseCSV(input.logiciels);\n\nif (logiciels.length === 0) {\n  throw new Error(`Parsing logiciels vide. Type: ${typeof input.logiciels} | Début: ${String(input.logiciels).substring(0, 200)}`);\n}\n\n// --- IDs existants Deming ---\nconst maxExistingId = existingControls.reduce((m, c) => Math.max(m, c.id || 0), 0);\n\n// --- Measures VULN ---\nconst measureOS  = measures.find(m => m.clause === 'VULN-OS-01');\nconst measureLOG = measures.find(m => m.clause === 'VULN-LOG-01');\nconst measureIdOS  = measureOS  ? measureOS.id  : 9;\nconst measureIdLOG = measureLOG ? measureLOG.id : 10;\n\n// --- Helpers dates ---\nconst today = new Date(); today.setHours(0,0,0,0);\nfunction addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r.toISOString().split('T')[0]; }\nfunction calcPriority(s, n) {\n  if (s >= 9.0 || (n >= 3 && s >= 7.0)) return 'Critical';\n  if (s >= 7.0 || n >= 3) return 'High';\n  if (s >= 4.0) return 'Medium';\n  return 'Low';\n}\nconst daysMap = { Critical:15, High:30, Medium:90, Low:180 };\nfunction calcPlanDate(p) { return addDays(today, daysMap[p]||90); }\nfunction resolvePlanDate(existing, p) {\n  if (!existing || existing === '0000-00-00') return calcPlanDate(p);\n  const d = new Date(existing), t = new Date(today);\n  t.setDate(t.getDate()+15);\n  return d <= t ? calcPlanDate(p) : existing;\n}\n\n// --- Grouper CVEs par logiciel ---\nconst cvesByName = {};\nfor (const cve of cves) {\n  const name = (cve.Name||'').trim();\n  const st   = String(cve.CVE||'').toLowerCase().trim();\n  if (!name || st==='none' || st==='unknown') continue;\n  if (!cvesByName[name]) cvesByName[name] = [];\n  cvesByName[name].push(cve);\n}\n\n// --- Grouper logiciels par name ---\nconst logicielsByName = {};\nfor (const log of logiciels) {\n  const name = (log.name||log.Name||'').trim();\n  if (!name) continue;\n  if (!logicielsByName[name]) logicielsByName[name] = [];\n  logicielsByName[name].push(log);\n}\n\n// --- Construire les items ---\nconst items = [];\nlet newIdOffset = 0;\n\nfor (const [name, cveList] of Object.entries(cvesByName)) {\n  const logList = logicielsByName[name];\n  if (!logList || !logList.length) continue;\n\n  const scores   = cveList.map(c => parseFloat(c['CVE Score'])||0);\n  const maxScore = Math.max(...scores);\n  const cveIds   = [...new Set(cveList.map(c=>c.CVE).filter(Boolean))];\n  const cveObs   = cveList.filter(c=>c['CVE Score']).map(c=>`${c.CVE} (score:${c['CVE Score']}, impact:${c['CVE Impact']||'N/A'})`).join('; ');\n\n  for (const log of logList) {\n    const serverName = (log['logicalServers.name']||log['logicalServer']||'').trim() || 'UNKNOWN-SERVER';\n    const serverOS   = (log['logicalServers.operating_system']||log['operating_system']||'').trim();\n    const version    = (log.version||log.Version||'').trim();\n    const isOS       = (name === serverOS);\n    const clause     = isOS ? 'VULN-OS-01'  : 'VULN-LOG-01';\n    const measureId  = isOS ? measureIdOS   : measureIdLOG;\n    const maxSecNeed = Math.max(parseInt(log.security_need_c)||0, parseInt(log.security_need_i)||0, parseInt(log.security_need_a)||0, parseInt(log.security_need_t)||0);\n    const priority   = calcPriority(maxScore, maxSecNeed);\n    const scope      = `${name} ${version} | ${serverName} | ${serverOS}`;\n    const existing   = existingControls.find(c => (c.scope||'').trim()===scope && c.measure_id===measureId);\n\n    let action, controlId, planDate, noteField;\n    if (!existing) {\n      action='create'; controlId=maxExistingId+1+newIdOffset; planDate=calcPlanDate(priority); noteField=priority; newIdOffset++;\n    } else if (existing.status===2) {\n      action='create'; controlId=maxExistingId+1+newIdOffset; planDate=calcPlanDate(priority); noteField=`${priority} (recréé — précédent #${existing.id} clôturé)`; newIdOffset++;\n    } else if (existing.status===1) {\n      action='update'; controlId=existing.id; planDate=resolvePlanDate(existing.plan_date,priority); noteField=`⚠️ VÉRIFIER : control en cours — ${priority}`;\n    } else {\n      action='update'; controlId=existing.id; planDate=resolvePlanDate(existing.plan_date,priority); noteField=priority;\n    }\n\n    items.push({ json: {\n      action, software_name:name, software_version:version, clause, measure_id:measureId,\n      server_name:serverName, server_os:serverOS, priority, plan_date:planDate,\n      control_id:controlId, note_field:noteField, scope, max_cve_score:maxScore,\n      cve_ids:cveIds, cve_observations:cveObs, cves_filtered:cveList,\n      existing_status:           existing ? existing.status           : null,\n      existing_realisation_date: existing ? existing.realisation_date : null,\n      existing_score:            existing ? existing.score            : null,\n      security_need_c:log.security_need_c, security_need_i:log.security_need_i,\n      security_need_a:log.security_need_a, security_need_t:log.security_need_t,\n      rto:log.rto, rpo:log.rpo, users:log.users\n    }});\n  }\n}\n\nif (items.length === 0) {\n  throw new Error(`Aucun item généré. CVEs: ${Object.keys(cvesByName).join(', ')} | Logiciels: ${Object.keys(logicielsByName).join(', ')}`);\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        560
+      ],
+      "id": "19a95d5a-b11a-4cd8-9fe6-4f1491dbd1fb",
+      "name": "Prépare items par logiciel"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2352,
+        560
+      ],
+      "id": "be0002b7-d7a8-4d40-be00-2c7233d3cf3f",
+      "name": "Split par logiciel"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-action",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4240,
+        544
+      ],
+      "id": "ed246e83-09e5-4386-9d03-4d2ce75ca5e1",
+      "name": "CREATE ou UPDATE ?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get deming token').first().json.token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.control) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4576,
+        640
+      ],
+      "id": "2d24c058-61bc-4c38-8f4e-592377deb2a2",
+      "name": "POST control (create)"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls/{{ $json.control_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('get deming token').first().json.token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.control) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4576,
+        880
+      ],
+      "id": "93c40509-14e0-405f-8567-67aaf0d65e8b",
+      "name": "PUT control (update)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "da9f109d-278b-4935-a322-3feeebb90aa5",
+              "leftValue": "={{ $json.AFFECTE_LOGIQUE }}",
+              "rightValue": "OUI",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "19418cd9-841c-4f4c-99d8-fd2eac2f4e4a",
+              "leftValue": "={{ $json.AFFECTE_LOGIQUE }}",
+              "rightValue": "INCONNU",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2896,
+        576
+      ],
+      "id": "59e103ec-9a18-4c74-9f4f-bcf07152c9b9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3168,
+        560
+      ],
+      "id": "ac16b5f0-1dc6-4c69-abb7-bede0829823a",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// On récupère l'élément regroupé issu de l'agrégateur\nconst item = $input.item.json;\n\n// Récupération sécurisée du tableau des CVEs validées\nconst cvesArray = item.data || item.response || (Array.isArray(item) ? item : []);\n\n// Si le tableau est vide, on essaie de créer un tableau avec l'item lui-même\nconst baseData = cvesArray.length > 0 ? cvesArray[0] : item;\n\n// 1. Extraction propre des IDs de CVE\nconst cveIdsList = cvesArray.map(c => c.CVE).filter(Boolean).join(', ');\n\n// Calcul du score max parmi les CVE réellement validées\nconst scores = cvesArray.map(c => parseFloat(c['CVE Score']) || 0);\nconst maxScoreBrut = scores.length > 0 ? Math.max(...scores) : 0;\n\n// --- LOGIQUE D'INVERSION POUR DEMING ---\n// Si vous utilisez une échelle standard CVE (0-10), \n// nous devons mapper cela vers vos niveaux (1=Rouge, 2=Orange, 3=Vert)\nlet scoreFinal = 3; // Par défaut Vert\n\nif (cvesArray.some(c => c.CVE === 'Patch-Système')) {\n    // Cas de l'OS sans CVE : Score de maintenance préventive (ex: 2 = Orange)\n    scoreFinal = 2; \n} else {\n    // Cas des CVE réelles : Votre logique d'inversion actuelle\n    if (maxScoreBrut >= 7.0) scoreFinal = 1;\n    else if (maxScoreBrut >= 4.0) scoreFinal = 2;\n    else scoreFinal = 3;\n}\n\n// Récupération des données contextuelles\nconst softwareName = (baseData.software_name || 'Logiciel').trim();\nconst softwareVersion = (baseData.software_version || '').trim();\nconst serverName = baseData.server_name || 'Serveur';\nconst isOS = baseData.clause === 'VULN-OS-01';\n\n// Correction 2 : Éviter le doublon de version dans le titre\nlet titleName = softwareName;\nif (softwareVersion && !softwareName.includes(softwareVersion)) {\n    titleName = `${softwareName} ${softwareVersion}`;\n}\n\n// 3. Construction du bloc d'observations\nlet observationsText = \"\";\nif (cvesArray.length > 0) {\n    observationsText = cvesArray.map(c => {\n        if (c.CVE === 'Patch-Système') {\n            return `- ${c.CVE} : ${c.RAISON_LOGIQUE || 'Maintenance préventive appliquée.'}`;\n        }\n        return `- ${c.CVE} (Score: ${c['CVE Score'] !== undefined ? c['CVE Score'] : 'N/A'}) : ${c.RAISON_LOGIQUE || 'Validée'}`;\n    }).join('\\n');\n} else {\n    observationsText = isOS ? \"Maintenance préventive OS appliquée.\" : \"Aucune CVE vulnérable validée.\";\n}\n\nreturn {\n    json: {\n        \"id\": baseData.control_id || null,\n        \"measure_id\": baseData.measure_id || null,\n        \"name\": `${titleName} - ${serverName} — ${cvesArray.some(c => c.CVE === 'Patch-Système') ? 'Maintenance de Sécurité' : 'Remédiation CVE'}`,\n        \"objective\": `Corriger les CVE détectées sur ${softwareName}`,\n        \"input\": \"Inventaire CMDB, Base CVE Mercator\",\n        \"model\": \"Upgrade vers version stable supérieure\",\n        \"indicator\": \"0 CVE critique non patchée\",\n        \"action_plan\": `Mettre à jour ${softwareName} vers la dernière version stable. CVEs : ${cveIdsList || 'Aucune'}.`,\n        \"periodicity\": 3,\n        \"plan_date\": baseData.plan_date || null,\n        \"realisation_date\": null,\n        \"observations\": observationsText,\n        \"score\": scoreFinal,\n        \"note\": baseData.clause || baseData.note_field || '', \n        \"next_id\": null,\n        \"standard\": null,\n        \"attributes\": \"#Corrective #Protect #Threat_and_Vulnerability_Management #Pending_Patch\",\n        \"scope\": baseData.scope || null,\n        \"status\": 0\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3408,
+        560
+      ],
+      "id": "96eae7fc-a453-4c99-ab2d-b489609f7d3e",
+      "name": "Create deming json"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. On récupère le JSON généré par l'étape précédente\nconst currentControl = $input.first().json;\n\n// 2. On récupère le dump initial complet en mémoire n8n\nconst allDemingControls = $('get deming controls').all(); \n\n// 3. Détermination de la mesure (OS ou LOG)\nconst isOS = currentControl.scope ? (currentControl.scope.toLowerCase().includes('windows') || currentControl.scope.toLowerCase().includes('linux')) : false;\nconst realMeasureId = isOS ? 9 : 10;\nconst noteClause = isOS ? \"VULN-OS-01\" : \"VULN-LOG-01\";\n\n// --- FONCTION DE CONVERSION : ÉCHELLE 1 À 10 -> ÉCHELLE 1 À 3 ---\nfunction convertToDemingScore(score10) {\n  const val = parseFloat(score10) || 0.0;\n  if (val >= 7.0) return 3; // Rouge / Critique\n  if (val >= 4.0) return 2; // Orange / Élevé\n  return 1;                 // Vert / Faible\n}\n\n// On calcule le nouveau score sur l'échelle 1 à 3\nconst nouveauScoreConverti = convertToDemingScore(currentControl.score);\n\n// --- RECHERCHE PAR CORRESPONDANCE DE NOM (\"GREP\") ---\nlet action = 'create';\nlet controlIdOriginal = null;\nlet recordTrouve = null;\n\nconst targetName = currentControl.name ? currentControl.name.trim() : \"\";\n\nif (Array.isArray(allDemingControls)) {\n  for (const item of allDemingControls) {\n    const demingRecord = item.json;\n    if (demingRecord && demingRecord.name && demingRecord.name.trim() === targetName) {\n      recordTrouve = demingRecord;\n      break;\n    }\n  }\n}\n\n// Variables pour conserver l'historique nécessaire aux nœuds suivants de ton workflow\nlet existingStatus = 0;\nlet existingRealisationDate = null;\nlet existingPlanDate = currentControl.plan_date;\nlet ancienScoreExtrait = 0;\nlet existingObservations = \"\";\n\n// --- LOGIQUE DÉCISIONNELLE ---\nif (recordTrouve) {\n  // L'élément existe déjà\n  controlIdOriginal = recordTrouve.id;\n  existingStatus = recordTrouve.status !== undefined ? recordTrouve.status : 0;\n  existingRealisationDate = recordTrouve.realisation_date || null;\n  existingPlanDate = recordTrouve.plan_date || currentControl.plan_date;\n  existingObservations = recordTrouve.observations || \"\";\n  \n  // Extraction de l'ancien score (déjà stocké entre 1 et 3, ou conversion si reliquat 1-10)\n  if (recordTrouve.score !== null && recordTrouve.score !== undefined) {\n    let scoreBrut = parseFloat(recordTrouve.score);\n    ancienScoreExtrait = scoreBrut > 3 ? convertToDemingScore(scoreBrut) : Math.floor(scoreBrut) || 1;\n  } else if (recordTrouve.observations) {\n    const match = recordTrouve.observations.match(/Score:\\s*([0-9.]+)/);\n    if (match) {\n      let scoreExtrait = parseFloat(match[1]);\n      ancienScoreExtrait = scoreExtrait > 3 ? convertToDemingScore(scoreExtrait) : Math.floor(scoreExtrait) || 1;\n    }\n  }\n\n  // RÈGLE STRICTE DSI : Uniquement si aggravation STRICTE (ex: Ancien 2 -> Nouveau 3)\n  if (nouveauScoreConverti > ancienScoreExtrait) {\n    action = 'update';\n  } else {\n    action = 'none'; // Même score (3 vs 3) ou inférieur -> ON NE FAIT RIEN\n  }\n} else {\n  // L'élément n'existe pas : création complète (POST)\n  action = 'create';\n  controlIdOriginal = null;\n}\n\n// --- DUPLICATION PROPRE DES DEUX PAYLOADS ---\n// 1. Le payload épuré destiné à l'API en cas de PUT/POST\nlet finalControlBody = {};\n\nif (action === 'update') {\n  finalControlBody = {\n    id: controlIdOriginal,\n    score: nouveauScoreConverti,\n    observations: currentControl.observations\n  };\n} else {\n  // Pour le CREATE, on prend tout le modèle\n  finalControlBody = { ...currentControl };\n  finalControlBody.measure_id = realMeasureId;\n  finalControlBody.note = noteClause;\n  finalControlBody.score = nouveauScoreConverti;\n  delete finalControlBody.id; // Laisse faire Postgres\n}\n\n// 2. On nettoie les propriétés internes du sous-objet API pour ne pas corrompre le JSON envoyé\ndelete finalControlBody.action;\n\n// 3. RETOUR : On garde impérativement les clés à la racine du JSON n8n pour tes nœuds IF/SWITCH suivants !\nreturn [{\n  json: {\n    control: finalControlBody,\n    action: action, \n    control_id: controlIdOriginal,\n    measure_id: realMeasureId,\n    // On conserve ces clés à la racine pour que \"check action exists\" ne plante pas !\n    existing_status: existingStatus,\n    existing_realisation_date: existingRealisationDate,\n    existing_plan_date: existingPlanDate,\n    existing_score: ancienScoreExtrait,\n    existing_observations: existingObservations,\n    error: null\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3696,
+        560
+      ],
+      "id": "06500b3c-05df-469b-bad6-0dcdd13878fb",
+      "name": "check existence in deming"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "87fd173f-21a6-467b-895a-4396b575f21a",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "8065d79f-e70e-4602-a70a-0160a037bf98",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "update",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3984,
+        560
+      ],
+      "id": "48d6cb68-1c37-466d-94cc-193bfe7a179c",
+      "name": "check action exists"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputJson = $input.item.json;\nlet cvesArray = inputJson.cves_filtered || inputJson.cves || inputJson; \n\n// --- CORRECTION CHIRURGICALE OS SANS CVE ---\nconst isOS = inputJson.clause === 'VULN-OS-01' || \n             (inputJson.software_name && inputJson.server_os && inputJson.software_name.trim() === inputJson.server_os.trim());\n\nif ((!Array.isArray(cvesArray) || cvesArray.length === 0) && isOS) {\n    cvesArray = [{\n        'CVE': 'Patch-Système',\n        'CVE Score': 0,\n        'CVE Summary': 'Maintenance et mise à jour préventive du système d\\'exploitation.',\n        'RAISON_LOGIQUE': 'Génération automatique (Aucune CVE critique active détectée)'\n    }];\n} else if (!Array.isArray(cvesArray)) {\n    return [];\n}\n// -------------------------------------------\n\nfunction normalizeVersion(versionStr) {\n    if (!versionStr) return 0;\n    const clean = versionStr.toString().replace(/[^0-9.]/g, '');\n    if (!clean) return 0;\n    const parts = clean.split('.');\n    const major = (parts[0] || \"0\").padStart(2, '0');\n    const minor = (parts[1] || \"0\").padStart(2, '0');\n    const patch = (parts[2] || \"0\").padStart(2, '0');\n    return parseInt(major + minor + patch, 10);\n}\n\nconst appCompVer = normalizeVersion(inputJson.software_version);\nconst versionRegex = /(\\b\\d+\\.\\d+\\.\\d+\\b|\\b\\d+\\.\\d+\\b)/g;\n\nreturn cvesArray.map(cve => {\n    const originalSummary = cve['CVE Summary'] || \"\";\n    let compSummary = originalSummary;\n    let autoDecision = \"INCONNU\";\n    let raisonMatch = \"Analyse automatique\";\n\n    if (cve.CVE === 'Patch-Système') {\n        autoDecision = \"OUI\";\n        raisonMatch = cve.RAISON_LOGIQUE;\n    } else if (originalSummary) {\n        const textLower = originalSummary.toLowerCase();\n        \n        // --- DECOUPAGE INTELLIGENT DU TEXTE ---\n        const splitKeywords = [\"upgrade to\", \"fixed in\", \"fixes this\", \"recommended to upgrade\"];\n        let vulnerabilityText = textLower;\n        let patchText = \"\";\n\n        for (const keyword of splitKeywords) {\n            if (textLower.includes(keyword)) {\n                const index = textLower.indexOf(keyword);\n                vulnerabilityText = textLower.substring(0, index);\n                patchText = textLower.substring(index);\n                break;\n            }\n        }\n\n        // --- 1. ANALYSE DE LA PARTIE CORRECTIF (PATCH) ---\n        let patchVersionNum = 0;\n        let patchVersionRaw = \"\";\n        if (patchText) {\n            const originalPatchText = originalSummary.substring(originalSummary.toLowerCase().indexOf(patchText.substring(0, 10)));\n            const patchVersionsFound = originalPatchText.match(versionRegex);\n            if (patchVersionsFound && patchVersionsFound.length > 0) {\n                patchVersionRaw = patchVersionsFound[0];\n                patchVersionNum = normalizeVersion(patchVersionRaw);\n            }\n        }\n\n        // --- 2. ANALYSE DE LA PARTIE VULNÉRABILITÉ ---\n        const originalVulnText = originalSummary.substring(0, vulnerabilityText.length);\n        const vulnVersionsFound = originalVulnText.match(versionRegex);\n        \n        if (vulnVersionsFound && vulnVersionsFound.length > 0) {\n            const mappedVulns = vulnVersionsFound.map(v => ({ raw: v, num: normalizeVersion(v) }));\n            const maxVuln = mappedVulns.reduce((max, item) => item.num > max.num ? item : max, mappedVulns[0]);\n            const minVuln = mappedVulns.reduce((min, item) => item.num < min.num ? item : min, mappedVulns[0]);\n\n            if (vulnerabilityText.includes(\"older\") || vulnerabilityText.includes(\"before\") || vulnerabilityText.includes(\"prior to\") || vulnerabilityText.includes(\"earlier\")) {\n                if (appCompVer <= maxVuln.num) {\n                    autoDecision = \"OUI\";\n                    raisonMatch = `Version ${inputJson.software_version} <= version max affectee [${maxVuln.raw}]`;\n                } else {\n                    autoDecision = \"NON\";\n                    raisonMatch = `Version ${inputJson.software_version} > version max affectee [${maxVuln.raw}]`;\n                }\n            }\n            else if (vulnerabilityText.includes(\"through\") || vulnerabilityText.includes(\" to \")) {\n                if (appCompVer >= minVuln.num && appCompVer <= maxVuln.num) {\n                    autoDecision = \"OUI\";\n                    raisonMatch = `Version dans l'intervalle vulnérable [${minVuln.raw}-${maxVuln.raw}]`;\n                } else if (appCompVer > maxVuln.num) {\n                    autoDecision = \"NON\";\n                    raisonMatch = `Version supérieure à l'intervalle [${maxVuln.raw}]`;\n                }\n            }\n        } \n        \n        // --- 3. SÉCURITÉ / DOUBLE CHECK AVEC LE PATCH ---\n        if (autoDecision === \"INCONNU\" && patchVersionNum > 0) {\n            if (appCompVer < patchVersionNum) {\n                autoDecision = \"OUI\";\n                raisonMatch = `Version inférieure au correctif [${patchVersionRaw}]`;\n            } else {\n                autoDecision = \"NON\";\n                raisonMatch = `Version >= au correctif [${patchVersionRaw}]`;\n            }\n        }\n    }\n\n    if (compSummary && cve.CVE !== 'Patch-Système') {\n        compSummary = compSummary.replace(versionRegex, (match) => {\n            return `${match} [${normalizeVersion(match)}]`;\n        });\n    }\n\n    // --- FORCE OUI POUR LES OS ---\n    if (isOS) {\n        autoDecision = \"OUI\";\n        raisonMatch = \"Règle forcée : OS soumis à maintenance préventive systématique.\";\n    }\n    // -----------------------------\n  \n    return {\n        json: {\n            software_name: inputJson.software_name,\n            software_version: inputJson.software_version,\n            CompVer: appCompVer.toString(),\n            \n            AFFECTE_LOGIQUE: autoDecision,\n            RAISON_LOGIQUE: raisonMatch,\n            \n            CompCVE_Summary: compSummary,\n            \"CVE Summary\": originalSummary,\n            ...inputJson,\n            ...cve\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2656,
+        576
+      ],
+      "id": "24369c15-7c3f-4d3f-a954-e3b3164534ed",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $('Definitions initiales').item.json.mercatorHost }}:{{ $('Definitions initiales').item.json.mercatorPort }}/api/queries",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        432
+      ],
+      "id": "20c1fea9-296b-4405-9d19-300a7dab6164",
+      "name": "get mercator query "
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. On récupère la liste complète des requêtes Mercator renvoyée par le GET\nconst queries = $input.all();\n\nlet targetId = null;\n\n// 2. On cherche la requête dont le nom est \"cpe\"\nif (Array.isArray(queries)) {\n  for (const item of queries) {\n    const queryData = item.json;\n    if (queryData && queryData.name && queryData.name.trim() === \"cpe\") {\n      targetId = queryData.id;\n      break;\n    }\n  }\n}\n\n// 3. Sécurité : Si la requête n'existe pas ou a été renommée\nif (!targetId) {\n  throw new Error(\"Impossible de trouver la requête nommée 'cpe' dans Mercator. Vérifiez son nom sur l'interface.\");\n}\n\n// 4. On retourne l'ID dynamique trouvé\nreturn [{\n  json: {\n    mercator_query_id: targetId\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        432
+      ],
+      "id": "4137ee73-a99e-4004-bafd-60a5c9ff8ef7",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Definitions initiales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definitions initiales": {
+      "main": [
+        [
+          {
+            "node": "get mercator token",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get deming token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator token": {
+      "main": [
+        [
+          {
+            "node": "get mercator report cve",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get mercator query ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator report cve": {
+      "main": [
+        [
+          {
+            "node": "Extract CVE xlsx",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CVE xlsx": {
+      "main": [
+        [
+          {
+            "node": "Aggregate CVEs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate CVEs": {
+      "main": [
+        [
+          {
+            "node": "Merge CVE + Logiciels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator query 7": {
+      "main": [
+        [
+          {
+            "node": "Rename Keys logiciels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename Keys logiciels": {
+      "main": [
+        [
+          {
+            "node": "Merge CVE + Logiciels",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "get deming token": {
+      "main": [
+        [
+          {
+            "node": "get deming measures",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get deming controls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming measures": {
+      "main": [
+        [
+          {
+            "node": "Merge Deming measures+controls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get deming controls": {
+      "main": [
+        [
+          {
+            "node": "Merge Deming measures+controls",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge CVE + Logiciels": {
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Deming measures+controls": {
+      "main": [
+        [
+          {
+            "node": "Merge All",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge All": {
+      "main": [
+        [
+          {
+            "node": "Prépare items par logiciel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prépare items par logiciel": {
+      "main": [
+        [
+          {
+            "node": "Split par logiciel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split par logiciel": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CREATE ou UPDATE ?": {
+      "main": [
+        [
+          {
+            "node": "POST control (create)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PUT control (update)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST control (create)": {
+      "main": [
+        [
+          {
+            "node": "Split par logiciel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUT control (update)": {
+      "main": [
+        [
+          {
+            "node": "Split par logiciel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Create deming json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create deming json": {
+      "main": [
+        [
+          {
+            "node": "check existence in deming",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check existence in deming": {
+      "main": [
+        [
+          {
+            "node": "check action exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check action exists": {
+      "main": [
+        [
+          {
+            "node": "CREATE ou UPDATE ?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split par logiciel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mercator query ": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "get mercator query 7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "66ede895-46e9-4679-96d2-eeec87e01cbe",
+  "meta": {
+    "instanceId": "bdccda54b13bbe7df2d65c9a8d2df9954683e60099cb9ce83c84d4a8a4291c13"
+  },
+  "id": "UvcVF5WeoIl6eIDD",
+  "tags": []
+}
