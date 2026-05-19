@@ -1,55 +1,49 @@
 # Mercator → Deming : Automatisation de la gestion des CVEs
 
-> Transformer une CMDB technique en moteur opérationnel de pilotage cyber — de la détection à l'action.
+> Transformer une CMDB technique en moteur opérationnel de pilotage cyber — de la détection à la remédiation directe dans Deming.
 
-## ATTENTION: tous ces fichiers et le process sont fourni à titre d'exemple de faisabilité, et doivent être adaptés à votre environnement et testés. Je ne peux pas garantirni prendere d'engagement sur l'intégrité et le risque de perte de vos données
+## ⚠️ AVERTISSEMENT
+
+Tous ces fichiers et ce process sont fournis à titre d'exemple de faisabilité, et doivent être adaptés à votre environnement et testés. Je ne peux pas garantir ni prendre d'engagement sur l'intégrité et le risque de perte de vos données.
 
 ---
 
 ## Vue d'ensemble
 
-Ce projet automatise le cycle complet de gestion des vulnérabilités : depuis leur détection dans **Mercator** (CMDB), jusqu'à la création de plans d'actions dans **Deming** (GRC), en passant par une analyse contextuelle par LLM local (**Ollama**) orchestrée par **n8n**.
+Ce projet automatise le cycle complet de gestion des vulnérabilités : depuis leur détection dans **Mercator** (CMDB), jusqu'à la création ou mise à jour de contrôles dans **Deming** (GRC), **directement via l'API**, orchestré par **n8n**.
+
+**Plus de LLM, plus de fichier JSON intermédiaire : les contrôles sont poussés en temps réel dans Deming, logiciel par logiciel, CVE par CVE.**
 
 ```mermaid
 flowchart LR
     M([🗄️ Mercator\nCMDB]) --> N([⚙️ n8n\nWorkflow])
-    N --> O([🤖 Ollama\nLLM local])
-    O --> A([🐍 API Python\nSauvegarde JSON])
-    A --> D([📋 Deming\nGRC])
+    N --> D([📋 Deming\nGRC])
 
     style M fill:#dbeafe,stroke:#3b82f6
     style N fill:#fef9c3,stroke:#ca8a04
-    style O fill:#f3e8ff,stroke:#9333ea
-    style A fill:#dcfce7,stroke:#16a34a
     style D fill:#ffe4e6,stroke:#e11d48
 ```
 
 **Ce que ça apporte :**
-- Priorisation automatique des CVEs par criticité métier (CIDT : Confidentialité, Intégrité, Disponibilité, Traçabilité)
-- Plans d'actions prêts à l'emploi dans Deming, sans saisie manuelle
-- Traçabilité complète : CVE → application → serveur → action corrective
+
+- Traitement logiciel par logiciel, CVE par CVE : la boucle s'arrête sur les erreurs sans interrompre le reste
+- Filtrage intelligent des CVEs : seules les CVEs qui concernent réellement la version installée sont traitées
+- Gestion des scores corrigée : le calcul de priorité et la `plan_date` fonctionnent désormais correctement
+- Création ou mise à jour des contrôles Deming selon leur statut existant (create / update / skip)
+- Zéro LLM, zéro dépendance à Ollama
 
 ---
 
 ## Prérequis
 
 | Composant | Rôle | Version |
-|-----------|------|---------|
+| --- | --- | --- |
 | [Mercator](https://github.com/dbarzin/mercator) | CMDB source des CVEs | latest |
-| [Deming](https://github.com/dbarzin/deming) | GRC cible des actions | latest |
-| [n8n](https://n8n.io) | Orchestration du workflow | latest |
-| [Ollama](https://ollama.ai) | LLM local (pas de cloud) | latest |
-| Python | API de sauvegarde JSON | 3.11+ |
+| [Deming](https://github.com/dbarzin/deming) | GRC cible des contrôles | latest |
+| [n8n](https://n8n.io) | Orchestration du workflow | 2.x+ |
 
-```bash
-# Dépendances Python
-pip install fastapi uvicorn requests
 
-# Modèle LLM recommandé
-ollama pull qwen3.5:397b-cloud
-# ou
-ollama pull gemma4:31b-cloud
-```
+> **Ollama n'est plus nécessaire dans cette version.**
 
 ---
 
@@ -62,29 +56,37 @@ sequenceDiagram
     participant N as n8n
     participant M as Mercator
     participant D as Deming
-    participant O as Ollama
-    participant A as API Python
 
-    Note over N: Déclenchement manuel ou planifié
+    Note over N: Déclenchement manuel
 
     N->>M: POST /api/login → token
     N->>M: GET /api/report/cve → rapport XLSX
-    N->>M: GET /api/queries/execute/7 → métadonnées apps
+    N->>M: GET /api/queries → recherche ID requête "cpe"
+    N->>M: GET /api/queries/execute/{id} → métadonnées logiciels (CIDT, serveurs…)
 
     N->>D: POST /api/login → token
-    N->>D: GET /api/attributes + domains + measures + controls
-    Note over N,D: Récupération du référentiel de référence
+    N->>D: GET /api/measures → mesures VULN-LOG-01 / VULN-OS-01
+    N->>D: GET /api/controls → contrôles existants
 
-    N->>N: Fusion CVEs + apps + référentiel Deming
-    N->>O: POST /api/chat → prompt enrichi
-    O-->>N: JSON des actions (domains/measures/controls)
-
-    N->>N: Nettoyage et validation JSON
-    N->>A: POST /v3/sauve-json → fichier JSON
-    A-->>N: Confirmation sauvegarde
-
-    Note over N: Étape manuelle ou automatique
-    N->>D: python deming_restore_v1.py --file cve_actions.json
+    N->>N: Fusion CVEs + logiciels + référentiel Deming
+    N->>N: Préparation items (1 item par logiciel × serveur)
+    
+    loop Pour chaque logiciel
+        loop Pour chaque CVE du logiciel
+            N->>N: Analyse version : CVE applicable ?
+            N->>N: Filtrage AFFECTE_LOGIQUE = OUI / NON
+        end
+        N->>N: Agrégation CVEs retenues
+        N->>N: Construction contrôle Deming (scope, plan_date, note, score)
+        N->>N: Vérification existence dans Deming
+        alt create
+            N->>D: POST /api/controls
+        else update
+            N->>D: PUT /api/controls/{id}
+        else skip
+            Note over N: Contrôle ignoré (aucune action nécessaire)
+        end
+    end
 ```
 
 ---
@@ -94,14 +96,14 @@ sequenceDiagram
 ### Variables de configuration (nœud `Definitions initiales`)
 
 | Variable | Exemple | Description |
-|----------|---------|-------------|
+| --- | --- | --- |
 | `company` | `mon-entreprise` | Nom utilisé dans les noms de fichiers |
 | `directory` | `/home/user/mercator` | Répertoire de travail |
-| `mercatorHost:Port` | `localhost:8081` | Adresse Mercator |
-| `demingHost:Port` | `localhost:8030` | Adresse Deming |
-| `ollamaHost` | `localhost` | Adresse Ollama |
-| `ollamaModel` | `qwen3.5:32b` | Modèle LLM à utiliser |
-| `apiHost:Port` | `localhost:8020` | Adresse de l'API Python |
+| `mercatorHost` | `172.17.0.1` | Adresse Mercator |
+| `mercatorPort` | `8081` | Port Mercator |
+| `demingHost` | `172.17.0.1` | Adresse Deming |
+| `demingPort` | `8030` | Port Deming |
+
 
 ### Étapes du workflow
 
@@ -109,34 +111,63 @@ sequenceDiagram
 flowchart TD
     T([▶️ Déclenchement]) --> C[Definitions initiales]
     C --> MA[Auth Mercator]
-    MA --> CV[GET /api/report/cve\n→ rapport XLSX]
-    MA --> AP[GET /api/queries/execute/7\n→ apps + CIDT + RTO/RPO]
-    CV --> AGG[Agrégation CVEs]
-    AP --> REN[Renommage clés → logiciels]
-    AGG --> MRG1[Merge CVEs + Apps]
+    C --> DA[Auth Deming]
+
+    MA --> CV[GET report/cve → XLSX]
+    MA --> QR[GET queries → ID requête 'cpe']
+    QR --> Q7[GET queries/execute/ID → logiciels]
+
+    CV --> AGG[Aggregate CVEs]
+    Q7 --> REN[Rename Keys → logiciels]
+
+    AGG --> MRG1[Merge CVE + Logiciels]
     REN --> MRG1
 
-    DA[Auth Deming] --> ATT[GET attributes]
-    DA --> DOM[GET domains]
     DA --> MEA[GET measures]
     DA --> CTR[GET controls]
-    ATT & DOM & MEA & CTR --> MRG2[Merge référentiel Deming]
-    MRG2 --> REF[add json header reference]
-    MRG1 --> MRG3[Merge Final]
-    REF --> MRG3
+    MEA --> MRG2[Merge measures+controls]
+    CTR --> MRG2
 
-    MRG3 --> PRM[Construction prompt LLM]
-    PRM --> OLL[POST Ollama /api/chat]
-    OLL --> TOK[Comptage tokens]
-    TOK --> NET[Nettoyage JSON LLM]
-    NET --> NOM[Définition nom fichier]
-    NOM --> MRG4[Merge JSON + métadonnées]
-    MRG4 --> SAV[POST API /v3/sauve-json]
+    MRG1 --> MRG3[Merge All]
+    MRG2 --> MRG3
+
+    MRG3 --> PREP[Prépare items\n1 item / logiciel × serveur]
+    PREP --> SPLIT[Split par logiciel\nboucle SplitInBatches]
+
+    SPLIT -->|loop| CVE[Analyse version CVE\nAFFECTE_LOGIQUE = OUI/NON]
+    CVE --> IF1[Filtre OUI]
+    IF1 --> AGG2[Aggregate CVEs retenues]
+    AGG2 --> BUILD[Build contrôle Deming]
+    BUILD --> CHECK[Check existence Deming]
+    CHECK --> IF2{create / update / skip ?}
+    IF2 -->|create| POST[POST /api/controls]
+    IF2 -->|update| PUT[PUT /api/controls/id]
+    IF2 -->|skip| SPLIT
+    POST --> SPLIT
+    PUT --> SPLIT
 
     style T fill:#dcfce7
-    style SAV fill:#dbeafe
-    style OLL fill:#f3e8ff
+    style POST fill:#dbeafe
+    style PUT fill:#fef9c3
 ```
+
+---
+
+## Filtrage intelligent des CVEs par version
+
+C'est l'une des fonctionnalités clés de cette version. Pour chaque CVE, le workflow analyse automatiquement le résumé textuel (CVE Summary) et compare la version du logiciel installé avec les versions vulnérables mentionnées.
+
+### Logique d'analyse
+
+| Cas détecté dans le résumé | Décision | Exemple |
+| --- | --- | --- |
+| "before", "prior to", "older" + version | OUI si version installée ≤ version max affectée | `before 3.0.8` → v3.0.5 = OUI |
+| "through", "to" + plage de versions | OUI si version dans l'intervalle | `2.0 through 2.4` → v2.2 = OUI |
+| "upgrade to", "fixed in" + version correctif | OUI si version installée < version du correctif | `fixed in 1.5.3` → v1.5.1 = OUI |
+| Aucune version détectée | INCONNU (traité comme OUI par prudence) | — |
+| Logiciel = OS (`VULN-OS-01`) | OUI systématique (maintenance préventive) | Ubuntu 22.04 |
+
+Seules les CVEs avec `AFFECTE_LOGIQUE = OUI` sont agrégées et transmises à Deming.
 
 ---
 
@@ -147,208 +178,103 @@ flowchart TD
 Retourne un fichier XLSX avec pour chaque application :
 
 | Champ | Description |
-|-------|-------------|
-| `Nom` | Nom de l'application |
-| CPE | Identifiant du composant vulnérable |
-| CVE ID | Identifiant de la vulnérabilité |
-| Score CVSS | Sévérité (0–10) |
-| Description | Détail de la vulnérabilité |
+| --- | --- |
+| `Name` | Nom du logiciel |
+| `CVE` | Identifiant de la vulnérabilité |
+| `CVE Score` | Sévérité CVSS (0–10) |
+| `CVE Summary` | Description textuelle (utilisée pour le filtrage version) |
+| `CVE Impact` | Impact de la CVE |
 
 > 📖 Documentation Mercator : https://dbarzin.github.io/mercator/fr/vulnerabilities/
 
-### Source 2 : Métadonnées applicatives (`GET /api/queries/execute/7`)
+### Source 2 : Métadonnées logiciels (requête Mercator nommée `"cpe"`)
 
-```sql
-FROM applications
-FIELDS name, description, product, vendor, version, users, attributes, processes.name, processes.description, processes.owner, processes.activities.name, processes.macro_process.name, security_need_c, security_need_i, security_need_a, security_need_t, rto, rpo, logicalServers.name, logicalServers.operating_system, logicalServers.install_date, logicalServers.update_date
-WHERE (
-    attributes LIKE "%Logiciel%"
-)
-WITH logical_servers, processes
-OUTPUT list
-LIMIT 10
-```
-
-
-
-Pour chaque application, récupère le contexte métier :
+Le workflow cherche dynamiquement l'ID de la requête nommée `cpe` dans Mercator (plus d'ID hardcodé). Elle retourne pour chaque logiciel :
 
 | Champ | Description |
-|-------|-------------|
+| --- | --- |
+| `name` | Nom du logiciel |
+| `version` | Version installée (utilisée pour le filtrage CVE) |
 | `security_need_c/i/a/t` | Besoins CIDT (0–4) |
 | `rto` / `rpo` | Objectifs de reprise |
-| `logicalServers.name` | Serveur(s) hébergeant l'app |
+| `logicalServers.name` | Serveur(s) hébergeant le logiciel |
 | `logicalServers.operating_system` | Système d'exploitation |
 
 ### Correspondance CIDT
 
 | Niveau | Valeur | Signification |
-|--------|--------|---------------|
-| 0 | Insignifiant | — |
-| 1 | Faible | 🟢 Vert   |
-| 2 | Moyen | 🟡 Jaune  |
-| 3 | Fort | 🟠 Orange  |
-| 4 | Très fort | 🔴 Rouge  |
+| --- | --- | --- |
+| Null | Insignifiant | — |
+| 3 | Faible | 🟢 |
+| 2 | Moyen | 🟠 |
+| 1 | Fort | 🔴 |
+
 
 ---
 
-## Règles de priorisation
+## Règles de priorisation et calcul de score
 
 ### Calcul de la priorité
 
-```mermaid
-flowchart TD
-    A[Score CVE + security_need max] --> B{CVSS ≥ 9\nou need ≥ 3 ET CVSS ≥ 7 ?}
-    B -->|Oui| C[🔴 Critical]
-    B -->|Non| D{CVSS ≥ 7\nou need ≥ 3 ?}
-    D -->|Oui| E[🟠 High]
-    D -->|Non| F{CVSS ≥ 4 ?}
-    F -->|Oui| G[🟡 Medium]
-    F -->|Non| H[🟢 Low]
-```
+La priorité est calculée à partir du score CVSS et du besoin de sécurité maximal (CIDT) :
+
+| Condition | Priorité |
+| --- | --- |
+| CVSS ≥ 10.0 **ou** (need ≥ 3 et CVSS ≥ 7.0) | 🔴 Critical |
+| CVSS > 7.0 **ou** need ≥ 3 | 🟠 High |
+| CVSS > 4.0 | 🟢 Low |
 
 ### Délais de remédiation automatiques
 
-| Priorité | Échéance | Clause Deming |
-|----------|----------|---------------|
-| 🔴 Critical | J+15 | VULN-LOG-01 / VULN-OS-01 |
-| 🟠 High | J+30 | VULN-LOG-01 / VULN-OS-01 |
-| 🟡 Medium | J+90 | VULN-LOG-01 / VULN-OS-01 |
-| 🟢 Low | J+180 | VULN-LOG-01 / VULN-OS-01 |
+| Priorité | Délai | Plan date |
+| --- | --- | --- |
+| 🔴 Critical | J+15 | Recalculée si plan_date existante < J+15 |
+| 🟠 High | J+30 | Recalculée si plan_date existante < J+15 |
+| 🟢 Low | J+90 | Recalculée si plan_date existante < J+15 |
 
 ### Dispatch des clauses Deming
 
 | Clause | Condition |
-|--------|-----------|
-| `VULN-OS-01` | Le nom du logiciel == nom de l'OS (ex: `Ubuntu 22.04`, `Windows Server 2025`) |
+| --- | --- |
+| `VULN-OS-01` | Le nom du logiciel correspond au nom de l'OS du serveur |
 | `VULN-LOG-01` | Tous les autres logiciels applicatifs |
 
 ---
 
-## Structure JSON générée
+## Gestion des contrôles existants dans Deming
 
-Le LLM produit un JSON compatible avec `deming_restore_v1.py` :
+Avant de créer ou mettre à jour un contrôle, le workflow vérifie son existence dans Deming en comparant le champ `scope` et le `measure_id`.
 
-```json
-{
-  "domains": [],
-  "measures": [
-    {
-      "clause": "VULN-LOG-01",
-      "controls": [12, 15]
-    }
-  ],
-  "controls": [
-    {
-      "name": "Mise à jour OpenSSL 3.0",
-      "status": 0,
-      "scope": "openssl 3.0.0 | SRV-WEB-01 | Ubuntu 22.04",
-      "note": "Critical",
-      "plan_date": "2025-05-16",
-      "score": null,
-      "realisation_date": null
-    }
-  ]
-}
+| Situation | Action | Comportement |
+| --- | --- | --- |
+| Contrôle inexistant | `create` | POST → nouveau contrôle |
+| Contrôle existant, statut = 0 (ouvert) | `update` | PUT → mise à jour plan_date et note |
+| Contrôle existant, statut = 1 (en cours) | `update` | PUT avec avertissement ⚠️ dans le champ note |
+| Contrôle existant, statut = 2 (clôturé) | `create` | POST → recréation avec référence au précédent |
+
+**Champs protégés lors d'un update** : `status`, `realisation_date`, `score` — ces champs ne sont jamais écrasés.
+
+### Format du champ `scope`
+
+```
+<logiciel> <version> | <serveur_logique> | Remédiation CVE
 ```
 
-**Champ `scope` obligatoire** — format :
-```
-<logiciel> <version> | <serveur_logique> | <os>
-```
+Exemple : `mariadb 10.11.3 | LOGICAL-SERVER-13 | Ubuntu 22.04 LTS`
 
 ---
 
-## API Python de sauvegarde (`api_mercator.py`)
+## Clauses Deming (limitation connue)
 
-> **Pourquoi une API ?** n8n ne peut plus sauvegarder directement en local depuis les dernières versions. L'API FastAPI reçoit le JSON et le persiste sur le filesystem du serveur.
-
-### Démarrage
-
-```bash
-uvicorn api_mercator:app --host 0.0.0.0 --port 8020 --reload
-```
-
-### Endpoint
-
-```
-POST http://localhost:8020/v3/sauve-json
-```
-
-| Header | Valeur | Obligatoire |
-|--------|--------|-------------|
-| `directory` | Chemin absolu de destination | ✅ |
-| `filename` | Nom du fichier (ex: `cve_actions_2025.json`) | ✅ |
-| `mode` | `save` (défaut) | — |
-| `Content-Type` | `application/json` | ✅ |
-
-**Corps de la requête :** le JSON généré par le LLM.
-
-```bash
-# Exemple curl
-curl -X POST http://localhost:8020/v3/sauve-json \
-  -H "Content-Type: application/json" \
-  -H "directory: /home/user/mercator/outputs" \
-  -H "filename: cve_actions_2025-05-01.json" \
-  -d '{"domains":[],"measures":[...],"controls":[...]}'
-```
+> ⚠️ **La liaison des contrôles aux clauses Deming est en attente de correction par le développeur.** Les contrôles sont créés et mis à jour correctement, mais l'association à la clause (`VULN-LOG-01` / `VULN-OS-01`) peut ne pas être effective dans toutes les configurations. Un correctif est prévu.
 
 ---
 
-## Import dans Deming (`deming_restore_v1.py`)
+## Capture d'écran — Résultat dans Deming
 
-Le script effectue l'import en deux passes pour gérer les dépendances entre objets :
+![Measurement list Deming](./docs/screenshot_deming.png)
 
-```mermaid
-flowchart LR
-    F[📄 cve_actions.json] --> AUTH[Auth Deming]
-    AUTH --> P1[PASS 1\nCréation objets]
-    P1 --> ATT[attributes]
-    P1 --> DOM[domains]
-    P1 --> MEA[measures]
-    P1 --> CTR[controls]
-    P1 --> USR[users]
-    ATT & DOM & MEA & CTR & USR --> P2[PASS 2\nCréation des liens]
-    P2 --> LNK[measures → controls]
-    LNK --> OK[✅ Import terminé]
-```
-
-**Déduplication automatique** — un objet existant ne sera pas recréé :
-
-| Objet | Clé d'unicité |
-|-------|---------------|
-| attributes | `name` |
-| domains | `title` |
-| measures | `clause` |
-| controls | `name` |
-
-### Commande
-
-```bash
-python3 deming_restore_v1.py --file cve_actions_2025-05-01.json
-```
-
----
-
-## Référentiel Deming pour le LLM
-
-Le workflow récupère en temps réel les **attributes, domains, measures et controls** existants de Deming pour les injecter dans le prompt LLM. Cela permet au modèle de :
-- Réutiliser les objets existants plutôt qu'en créer des doublons
-- Respecter les conventions de nommage en place
-- Produire un JSON directement compatible
-
-> ⚠️ **Bonne pratique** : si votre base Deming de production est volumineuse, maintenez une base de référence allégée (5–20 domains, 5–30 measures, 10–50 controls) dédiée au contexte LLM. Plus le contexte est concis, plus la génération est stable et rapide.
-
-```mermaid
-flowchart LR
-    DP[Deming Production] -->|Export filtré| DR[Référentiel LLM\nallégé]
-    DR --> N8N[n8n prompt]
-    N8N --> LLM[Ollama]
-    LLM --> JSON[JSON généré]
-    JSON --> VAL{Validation}
-    VAL -->|OK| DP2[Import Deming Production]
-    VAL -->|KO| N8N
-```
+*Exemple de liste de mesures générée : remédiation CVE par logiciel et serveur, avec plan_date calculée automatiquement.*
 
 ---
 
@@ -357,82 +283,75 @@ flowchart LR
 ### 1. Mercator et Deming
 
 Suivre les README respectifs :
+
 - https://github.com/dbarzin/mercator
 - https://github.com/dbarzin/deming
 
-### 2. Ollama
-*ollama 0.22 minimum*
+### 2. Requête Mercator "cpe"
 
-```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-ollama pull qwen3.5:397b-cloud
+Dans l'interface Mercator, créer (ou vérifier l'existence d'une requête nommée exactement **`cpe`** avec le corps suivant :
+
 ```
-
-### 3. API Python
-
-```bash
-cd /chemin/vers/le/projet
-pip install fastapi uvicorn requests
-uvicorn api_mercator:app --host 0.0.0.0 --port 8020 --reload
+FROM applications
+FIELDS name, description, product, vendor, version, users, attributes, processes.name, processes.description, processes.owner, processes.activities.name, processes.macro_process.name, security_need_c, security_need_i, security_need_a, security_need_t, rto, rpo, logicalServers.name, logicalServers.operating_system, logicalServers.install_date, logicalServers.update_date
+WHERE (
+    attributes LIKE "%logiciel%"
+    OR attributes LIKE "%opensource%"
+)
+WITH logical_servers
+OUTPUT list
+LIMIT 10
 ```
+Attention à gérer la limite en fonction de votre besoin.
 
-> ⚠️ L'API doit être démarrée **avant** d'exécuter le workflow n8n. Un sticky note de rappel est présent dans le workflow.
+> Le workflow recherche cette requête dynamiquement par son nom. Si elle n'existe pas ou est mal nommée, le workflow lève une erreur explicite.
 
-### 4. Workflow n8n
+### 3. Mesures Deming requises
 
-1. Importer `Phase_1_-_Analyse_mercator_cves_v1.json` dans n8n
+S'assurer que les deux controls suivants existent dans Deming avec ces clauses exactes :
+
+- `VULN-LOG-01` — Remédiation logiciels applicatifs
+- `VULN-OS-01` — Remédiation systèmes d'exploitation
+
+
+### 5. Workflow n8n
+
+1. Importer `Phase_1_-_Analyse_mercator_cves_v10.json` dans n8n (V2xx)
 2. Ouvrir le nœud **`Definitions initiales`** et adapter :
    - `company` → votre identifiant entreprise
    - `directory` → votre chemin de travail
-   - Adresses et ports de Mercator, Deming, Ollama, API
-3. Activer le workflow
-
-### 5. Import Deming
-
-```bash
-python3 deming_restore_v1.py --file /chemin/vers/cve_actions.json
-```
+   - Adresses et ports de Mercator, Deming, et API
+3. Exécuter manuellement via le bouton **Execute workflow**
 
 ---
 
 ## Limites connues
 
-| Limite | Mitigation |
-|--------|------------|
-| Hallucinations LLM | Valider le JSON avant import ; utiliser un modèle ≥ 30B |
-| Qualité des CPEs Mercator | Enrichir la CMDB au fil de l'eau |
-| Temps de traitement | Prévoir 2–10 min selon le volume et le modèle |
-| Volumétrie | Pour >100 CVEs, segmenter en lots par application |
+| Limite | Mitigation / Statut |
+| --- | --- |
+| Association aux clauses Deming | En attente de correction par le développeur |
+| Filtrage version "INCONNU" | Les CVEs sans version détectée sont traitées par prudence (comme OUI) |
+| Qualité des CPEs Mercator | Enrichir la CMDB pour de meilleurs résultats de filtrage |
+| Temps de traitement | Dépend du volume de CVEs et de logiciels — prévoir quelques secondes à quelques minutes |
 
 ---
 
 ## Sécurité
 
 - Ne jamais hardcoder les mots de passe dans les scripts — utiliser des variables d'environnement ou un coffre-fort (Vault, etc.)
-- Isoler Ollama, Deming, Mercator et l'API sur un réseau interne
+- Isoler Deming, Mercator et l'API sur un réseau interne
 - Activer les logs API et l'audit Deming pour la traçabilité
 
 ---
 
 ## Évolutions possibles
 
-```mermaid
-mindmap
-  root((Roadmap))
-    Enrichissement
-      Score EPSS
-      CVSS v4
-    Scanners externes
-      Nessus / OpenVAS
-      Qualys
-    Opérations
-      Validation humaine avant import
-      Notifications Teams / Slack
-      Dashboard KPI Deming
-    Industrialisation
-      Déclenchement webhook
-      Historisation des imports
-```
+- Score EPSS / CVSS v4
+- Scanners externes (Nessus, OpenVAS, Qualys)
+- Notifications Teams / Slack à la fin du traitement
+- Dashboard KPI Deming
+- Déclenchement planifié (webhook ou cron n8n)
+- Historisation des imports
 
 ---
 
@@ -440,14 +359,12 @@ mindmap
 
 ```mermaid
 flowchart TD
-    A[🗄️ Mercator\nCVEs + contexte métier] -->|Rapport XLSX + Query 7| B[⚙️ n8n\nOrchestration]
-    B -->|Référentiel actuel| C[📋 Deming\nattributes / domains\nmeasures / controls]
-    B -->|Prompt enrichi| D[🤖 Ollama\nAnalyse + génération JSON]
-    D -->|JSON nettoyé| E[🐍 API Python\n/v3/sauve-json]
-    E -->|Fichier JSON| F[📁 Fichier\ncve_actions.json]
-    F -->|deming_restore_v1.py| G[📋 Deming\nMesures + Contrôles créés]
+    A[🗄️ Mercator\nCVEs + contexte logiciels] -->|XLSX + Query cpe| B[⚙️ n8n\nOrchestration]
+    B -->|measures + controls existants| C[📋 Deming\nRéférentiel]
+    B -->|Boucle logiciel × CVE| D[🔍 Filtrage version\nAFFECTE_LOGIQUE]
+    D -->|POST / PUT| E[📋 Deming\nContrôles créés ou mis à jour]
 
     style A fill:#dbeafe,stroke:#3b82f6
-    style G fill:#ffe4e6,stroke:#e11d48
-    style D fill:#f3e8ff,stroke:#9333ea
+    style E fill:#ffe4e6,stroke:#e11d48
+    style D fill:#dcfce7,stroke:#16a34a
 ```
