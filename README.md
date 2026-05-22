@@ -43,6 +43,21 @@ flowchart LR
 | [n8n](https://n8n.io) | Orchestration du workflow | 2.x+ |
 
 
+**`Version minimum de deming: 20260522 DEV`**
+
+Les controls VULN-OS-01 et VULN-LOG-01 doivent exister dans deming
+| Domain | Clause | Name |
+|---|---|---|
+| Mise à jour logiciels | VULN-LOG-01 | Maintien à jour des Logiciels |
+| Mise à jour Operating Système | VULN-OS-01 | Maintien à jour des Systèmes d'exploitation |
+
+Un user avec role API doit exister
+défaut du proces n8n: api@admin.localhost password 12345678
+
+On démarre avec une base deming vide 
+on charge le fichier de démo json:
+`python3 deming_restore_v2.py --json dump_deming_reference.json`
+
 > **Ollama n'est plus nécessaire dans cette version.**
 
 ---
