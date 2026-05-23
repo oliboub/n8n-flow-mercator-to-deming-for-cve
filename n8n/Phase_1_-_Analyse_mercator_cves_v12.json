@@ -1,5 +1,5 @@
 {
-  "name": "Phase 1 - Analyse mercator cves v11",
+  "name": "Phase 1 - Analyse mercator cves v12",
   "nodes": [
     {
       "parameters": {
@@ -284,7 +284,7 @@
     },
     {
       "parameters": {
-        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -307,7 +307,7 @@
     },
     {
       "parameters": {
-        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -390,7 +390,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -428,7 +428,7 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls/{{ $json.control_id }}",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures/{{ $json.control_id }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -521,7 +521,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// On récupère l'élément regroupé issu de l'agrégateur\nconst item = $input.item.json;\n\n// Récupération sécurisée du tableau des CVEs validées\nconst cvesArray = item.data || item.response || (Array.isArray(item) ? item : []);\n\n// Si le tableau est vide, on essaie de créer un tableau avec l'item lui-même\nconst baseData = cvesArray.length > 0 ? cvesArray[0] : item;\n\n// 1. Extraction propre des IDs de CVE\nconst cveIdsList = cvesArray.map(c => c.CVE).filter(Boolean).join(', ');\n\n// Calcul du score max parmi les CVE réellement validées\nconst scores = cvesArray.map(c => parseFloat(c['CVE Score']) || 0);\nconst maxScoreBrut = scores.length > 0 ? Math.max(...scores) : 0;\n\n// --- LOGIQUE D'INVERSION POUR DEMING ---\n// Si vous utilisez une échelle standard CVE (0-10), \n// nous devons mapper cela vers vos niveaux (1=Rouge, 2=Orange, 3=Vert)\nlet scoreFinal = 3; // Par défaut Vert\n\nif (cvesArray.some(c => c.CVE === 'Patch-Système')) {\n    // Cas de l'OS sans CVE : Score de maintenance préventive (ex: 2 = Orange)\n    scoreFinal = 2; \n} else {\n    // Cas des CVE réelles : Votre logique d'inversion actuelle\n    if (maxScoreBrut >= 7.0) scoreFinal = 1;\n    else if (maxScoreBrut >= 4.0) scoreFinal = 2;\n    else scoreFinal = 3;\n}\n\n// Récupération des données contextuelles\nconst softwareName = (baseData.software_name || 'Logiciel').trim();\nconst softwareVersion = (baseData.software_version || '').trim();\nconst serverName = baseData.server_name || 'Serveur';\nconst isOS = baseData.clause === 'VULN-OS-01';\n\n// Correction 2 : Éviter le doublon de version dans le titre\nlet titleName = softwareName;\nif (softwareVersion && !softwareName.includes(softwareVersion)) {\n    titleName = `${softwareName} ${softwareVersion}`;\n}\n\n// 3. Construction du bloc d'observations\nlet observationsText = \"\";\nif (cvesArray.length > 0) {\n    observationsText = cvesArray.map(c => {\n        if (c.CVE === 'Patch-Système') {\n            return `- ${c.CVE} : ${c.RAISON_LOGIQUE || 'Maintenance préventive appliquée.'}`;\n        }\n        return `- ${c.CVE} (Score: ${c['CVE Score'] !== undefined ? c['CVE Score'] : 'N/A'}) : ${c.RAISON_LOGIQUE || 'Validée'}`;\n    }).join('\\n');\n} else {\n    observationsText = isOS ? \"Maintenance préventive OS appliquée.\" : \"Aucune CVE vulnérable validée.\";\n}\n\nreturn {\n    json: {\n        \"id\": baseData.control_id || null,\n        \"name\": `${titleName} - ${serverName} — ${cvesArray.some(c => c.CVE === 'Patch-Système') ? 'Maintenance de Sécurité' : 'Remédiation CVE'}`,\n        \"objective\": `Corriger les CVE détectées sur ${softwareName}`,\n        \"input\": \"Inventaire CMDB, Base CVE Mercator\",\n        \"model\": \"Upgrade vers version stable supérieure\",\n        \"indicator\": \"0 CVE critique non patchée\",\n        \"action_plan\": `Mettre à jour ${softwareName} vers la dernière version stable. CVEs : ${cveIdsList || 'Aucune'}.`,\n        \"periodicity\": 3,\n        \"plan_date\": baseData.plan_date || null,\n        \"realisation_date\": null,\n        \"observations\": observationsText,\n        \"score\": scoreFinal,\n        \"note\": baseData.clause || baseData.note_field || '', \n        \"next_id\": null,\n        \"standard\": null,\n        \"attributes\": \"#Corrective #Protect #Threat_and_Vulnerability_Management #Pending_Patch\",\n        \"scope\": baseData.scope || null,\n        \"measures\": [baseData.measure_id] || null,\n        \"status\": 0\n    }\n};"
+        "jsCode": "// On récupère l'élément regroupé issu de l'agrégateur\nconst item = $input.item.json;\n\n// Récupération sécurisée du tableau des CVEs validées\nconst cvesArray = item.data || item.response || (Array.isArray(item) ? item : []);\n\n// Si le tableau est vide, on essaie de créer un tableau avec l'item lui-même\nconst baseData = cvesArray.length > 0 ? cvesArray[0] : item;\n\n// 1. Extraction propre des IDs de CVE\nconst cveIdsList = cvesArray.map(c => c.CVE).filter(Boolean).join(', ');\n\n// Calcul du score max parmi les CVE réellement validées\nconst scores = cvesArray.map(c => parseFloat(c['CVE Score']) || 0);\nconst maxScoreBrut = scores.length > 0 ? Math.max(...scores) : 0;\n\n// --- LOGIQUE D'INVERSION POUR DEMING ---\n// Si vous utilisez une échelle standard CVE (0-10), \n// nous devons mapper cela vers vos niveaux (1=Rouge, 2=Orange, 3=Vert)\nlet scoreFinal = 3; // Par défaut Vert\n\nif (cvesArray.some(c => c.CVE === 'Patch-Système')) {\n    // Cas de l'OS sans CVE : Score de maintenance préventive (ex: 2 = Orange)\n    scoreFinal = 2; \n} else {\n    // Cas des CVE réelles : Votre logique d'inversion actuelle\n    if (maxScoreBrut >= 7.0) scoreFinal = 1;\n    else if (maxScoreBrut >= 4.0) scoreFinal = 2;\n    else scoreFinal = 3;\n}\n\n// Récupération des données contextuelles\nconst softwareName = (baseData.software_name || 'Logiciel').trim();\nconst softwareVersion = (baseData.software_version || '').trim();\nconst serverName = baseData.server_name || 'Serveur';\nconst isOS = baseData.clause === 'VULN-OS-01';\n\n// Correction 2 : Éviter le doublon de version dans le titre\nlet titleName = softwareName;\nif (softwareVersion && !softwareName.includes(softwareVersion)) {\n    titleName = `${softwareName} ${softwareVersion}`;\n}\n\n// 3. Construction du bloc d'observations\nlet observationsText = \"\";\nif (cvesArray.length > 0) {\n    observationsText = cvesArray.map(c => {\n        if (c.CVE === 'Patch-Système') {\n            return `- ${c.CVE} : ${c.RAISON_LOGIQUE || 'Maintenance préventive appliquée.'}`;\n        }\n        return `- ${c.CVE} (Score: ${c['CVE Score'] !== undefined ? c['CVE Score'] : 'N/A'}) : ${c.RAISON_LOGIQUE || 'Validée'}`;\n    }).join('\\n');\n} else {\n    observationsText = isOS ? \"Maintenance préventive OS appliquée.\" : \"Aucune CVE vulnérable validée.\";\n}\n\nreturn {\n    json: {\n        \"id\": baseData.control_id || null,\n        \"name\": `${titleName} - ${serverName} — ${cvesArray.some(c => c.CVE === 'Patch-Système') ? 'Maintenance de Sécurité' : 'Remédiation CVE'}`,\n        \"objective\": `Corriger les CVE détectées sur ${softwareName}`,\n        \"input\": \"Inventaire CMDB, Base CVE Mercator\",\n        \"model\": \"Upgrade vers version stable supérieure\",\n        \"indicator\": \"0 CVE critique non patchée\",\n        \"action_plan\": `Mettre à jour ${softwareName} vers la dernière version stable. CVEs : ${cveIdsList || 'Aucune'}.`,\n        \"periodicity\": 3,\n        \"plan_date\": baseData.plan_date || null,\n        \"realisation_date\": null,\n        \"observations\": observationsText,\n        \"score\": scoreFinal,\n        \"note\": baseData.clause || baseData.note_field || '', \n        \"next_id\": null,\n        \"standard\": null,\n        \"attributes\": \"#Corrective #Protect #Threat_and_Vulnerability_Management #Pending_Patch\",\n        \"scope\": baseData.scope || null,\n        \"controls\": [baseData.measure_id] || null,\n        \"status\": 0\n    }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -534,7 +534,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// 1. On récupère le JSON en entrée\nconst currentControl = $input.first().json;\nconst allDemingControls = $('get deming controls').all(); \n\n// 2. On récupère l'ID de mesure déjà calculé par le nœud précédent\n// S'il n'existe pas, on met 9 par défaut\n//const realMeasureId = currentControl.measure_id || 9;\nconst realMeasureId = (currentControl.measures && currentControl.measures.length > 0) \n                      ? currentControl.measures[0] \n                      : (currentControl.measure_id || 9);\n\nconsole.log(\"DEBUG - measure_id reçu dans le nœud :\", realMeasureId);\n\nif (!realMeasureId) {\n    throw new Error(\"ALERTE : Le champ measure_id est vide dans l'input de ce nœud !\");\n}\n// 3. Recherche du contrôle existant (Version tolérante aux caractères spéciaux)\nlet recordTrouve = null;\nconst targetName = (currentControl.name || \"\").trim().replace(/\\s+/g, ' ').replace(/[–—]/g, '-');\n\nif (Array.isArray(allDemingControls)) {\n  recordTrouve = allDemingControls.find(item => {\n    const deming = item.json;\n    if (!deming.name) return false;\n    const demingName = deming.name.trim().replace(/\\s+/g, ' ').replace(/[–—]/g, '-');\n    return demingName === targetName;\n  })?.json;\n}\n\n// 4. Calcul de la décision (Update seulement si score plus élevé)\nconst nouveauScoreConverti = (parseFloat(currentControl.score) || 0) > 3 ? 3 : (Math.floor(parseFloat(currentControl.score)) || 1);\nlet action = 'none';\nlet controlIdOriginal = null;\n\nif (recordTrouve) {\n  controlIdOriginal = recordTrouve.id;\n  const ancienScore = (parseFloat(recordTrouve.score) || 0);\n  \n  if (nouveauScoreConverti > ancienScore) {\n    action = 'update';\n  } else {\n    action = 'none';\n  }\n} else {\n  action = 'create';\n}\n\n// 5. Préparation du payload final\nlet finalControlBody = { ...currentControl };\n\nif (action === 'update') {\n  finalControlBody = {\n    id: controlIdOriginal,\n    score: nouveauScoreConverti,\n    observations: currentControl.observations\n  };\n} else if (action === 'create') {\n  // Suppression de l'ID pour forcer la création côté API\n  delete finalControlBody.id;\n  finalControlBody.score = nouveauScoreConverti;\n  // Utilisation de l'ID de mesure propre (celui qui vient du précédent nœud)\n  finalControlBody.measures = [realMeasureId]; \n}\n\n// 6. Retour propre pour les nœuds suivants\nreturn [{\n  json: {\n    control: finalControlBody,\n    action: action, \n    control_id: controlIdOriginal,\n    status: recordTrouve ? recordTrouve.status : 0\n  }\n}];"
+        "jsCode": "// 1. On récupère le JSON en entrée\nconst currentControl = $input.first().json;\nconst allDemingControls = $('get deming measures').all(); \n\n// 2. On récupère l'ID de mesure déjà calculé par le nœud précédent\n// S'il n'existe pas, on met 9 par défaut\n//const realMeasureId = currentControl.measure_id || 9;\nconst realMeasureId = (currentControl.measures && currentControl.measures.length > 0) \n                      ? currentControl.measures[0] \n                      : (currentControl.measure_id || 9);\n\nconsole.log(\"DEBUG - measure_id reçu dans le nœud :\", realMeasureId);\n\nif (!realMeasureId) {\n    throw new Error(\"ALERTE : Le champ measure_id est vide dans l'input de ce nœud !\");\n}\n// 3. Recherche du contrôle existant (Version tolérante aux caractères spéciaux)\nlet recordTrouve = null;\nconst targetName = (currentControl.name || \"\").trim().replace(/\\s+/g, ' ').replace(/[–—]/g, '-');\n\nif (Array.isArray(allDemingControls)) {\n  recordTrouve = allDemingControls.find(item => {\n    const deming = item.json;\n    if (!deming.name) return false;\n    const demingName = deming.name.trim().replace(/\\s+/g, ' ').replace(/[–—]/g, '-');\n    return demingName === targetName;\n  })?.json;\n}\n\n// 4. Calcul de la décision (Update seulement si score plus élevé)\nconst nouveauScoreConverti = (parseFloat(currentControl.score) || 0) > 3 ? 3 : (Math.floor(parseFloat(currentControl.score)) || 1);\nlet action = 'none';\nlet controlIdOriginal = null;\n\nif (recordTrouve) {\n  controlIdOriginal = recordTrouve.id;\n  const ancienScore = (parseFloat(recordTrouve.score) || 0);\n  \n  if (nouveauScoreConverti > ancienScore) {\n    action = 'update';\n  } else {\n    action = 'none';\n  }\n} else {\n  action = 'create';\n}\n\n// 5. Préparation du payload final\nlet finalControlBody = { ...currentControl };\n\nif (action === 'update') {\n  finalControlBody = {\n    id: controlIdOriginal,\n    score: nouveauScoreConverti,\n    observations: currentControl.observations\n  };\n} else if (action === 'create') {\n  // Suppression de l'ID pour forcer la création côté API\n  delete finalControlBody.id;\n  finalControlBody.score = nouveauScoreConverti;\n  // Utilisation de l'ID de mesure propre (celui qui vient du précédent nœud)\n  finalControlBody.controls = [realMeasureId]; \n}\n\n// 6. Retour propre pour les nœuds suivants\nreturn [{\n  json: {\n    control: finalControlBody,\n    action: action, \n    control_id: controlIdOriginal,\n    status: recordTrouve ? recordTrouve.status : 0\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -651,7 +651,7 @@
     },
     {
       "parameters": {
-        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls/{{ $json.id }}",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures/{{ $json.id }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -698,7 +698,7 @@
     },
     {
       "parameters": {
-        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/measures/{{ $json.id }}",
+        "url": "=http://{{ $('Definitions initiales').first().json.demingHost }}:{{ $('Definitions initiales').first().json.demingPort }}/api/controls/{{ $json.id }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
